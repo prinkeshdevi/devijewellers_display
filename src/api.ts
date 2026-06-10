@@ -26,6 +26,16 @@ apiRouter.post("/rates/sync", async (req, res) => { // Manual sync trigger
   }
 });
 
+// Allow GET for easy Synology NAS / External Cron integrations
+apiRouter.get("/rates/sync", async (req, res) => {
+  try {
+    await syncRates();
+    res.json({ success: true });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message || 'Error syncing' });
+  }
+});
+
 apiRouter.get("/settings", async (req, res) => {
   try {
     const current = await db.select().from(calculationSettings).limit(1);

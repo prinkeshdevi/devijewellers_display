@@ -560,8 +560,34 @@ export default function RateSync({
             <RefreshCw className="w-3.5 h-3.5"/> Refresh Logs
           </button>
         </div>
-        <div className="w-full overflow-x-auto">
+        <div className="w-full overflow-x-auto mb-10">
           <SystemSyncLogs />
+        </div>
+
+        {/* SECTION 8: EXTERNAL CRON / SYNOLOGY NAS */}
+        <div className="border border-zinc-800 rounded bg-[#0B0B0D] p-6 mb-6">
+          <h2 className="text-lg font-serif font-black text-[#F8F5EE] uppercase tracking-wider mb-2">Synology NAS Task Scheduler Setup</h2>
+          <p className="text-zinc-400 text-sm mb-4">You can use your Synology NAS to run a scheduled task that securely pulls and formulates the latest rates at your desired interval.</p>
+          
+          <div className="bg-[#15161A] border border-zinc-800 rounded p-4 relative mb-6">
+            <div className="text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-2 font-bold bg-[#15161A]">Run Command / User-defined script</div>
+            <code className="block text-xs font-mono text-zinc-300 select-all break-all pr-12 bg-black/50 p-3 rounded mt-2 border border-zinc-800">
+              curl -X GET {window.location.origin}/api/rates/sync
+            </code>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-[11px] font-mono text-zinc-300 uppercase tracking-widest font-bold">Step-by-Step Instructions</h3>
+            <ol className="list-decimal pl-4 space-y-2 text-sm text-zinc-400 font-sans">
+              <li>Log into your Synology NAS (DSM).</li>
+              <li>Open <strong>Control Panel</strong> and navigate to <strong>Task Scheduler</strong>.</li>
+              <li>Click <strong>Create</strong> &gt; <strong>Scheduled Task</strong> &gt; <strong>User-defined script</strong>.</li>
+              <li>On the <strong>General</strong> tab, enter a Task name (e.g., "Gold Rate Sync"). Set the user to your username.</li>
+              <li>On the <strong>Schedule</strong> tab, choose how frequently you want this to run (e.g., daily, or every 10 minutes).</li>
+              <li>On the <strong>Task Settings</strong> tab, under "Run command" or "User-defined script", paste the curl command shown above.</li>
+              <li>Click <strong>OK</strong> to save. The NAS will now manage the automatic updates on your schedule!</li>
+            </ol>
+          </div>
         </div>
       </div>
 
