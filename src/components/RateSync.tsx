@@ -302,13 +302,13 @@ export default function RateSync({
           <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent pointer-events-none rounded-xl"></div>
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-[#D4AF37]/20 pb-4 mb-6 relative z-10 gap-4">
             <h2 className="text-xl font-serif font-black text-[#F8F5EE] uppercase tracking-wider flex items-center gap-2">
-              <Activity className="w-5 h-5 text-[#D4AF37]" /> Live Calc Preview
+              <Activity className="w-5 h-5 text-[#D4AF37]" /> Current Rates
             </h2>
             <button 
-              onClick={pushCalculatedRates} 
+              onClick={syncMarketsApi} 
               className="bg-emerald-500 hover:bg-emerald-400 text-black shadow-[0_0_15px_rgba(34,197,94,0.3)] font-mono text-xs font-bold py-2 px-5 rounded transition-all tracking-widest uppercase flex items-center gap-2"
             >
-              Push to Screens Now
+              Force Sync API
             </button>
           </div>
           
@@ -316,51 +316,51 @@ export default function RateSync({
             {/* ROW 1 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-[#D4AF37]/50 transition-colors">
               <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">24K Sale</span>
-              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(calculatedRates.gold24k)}</span>
+              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(rates.gold24k)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest">24K Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(calculatedRates.gold24kPurchase)}</span>
+              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(rates.gold24kPurchase || 0)}</span>
             </div>
 
             {/* ROW 2 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-[#D4AF37]/50 transition-colors">
               <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">22K Sale</span>
-              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(calculatedRates.gold22k)}</span>
+              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(rates.gold22k)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest">22K Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(calculatedRates.gold22kPurchase)}</span>
+              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(rates.gold22kPurchase || 0)}</span>
             </div>
 
             {/* ROW 3 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-[#D4AF37]/50 transition-colors">
               <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">18K Sale</span>
-              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(calculatedRates.gold18k)}</span>
+              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(rates.gold18k)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest">18K Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(calculatedRates.gold18kPurchase)}</span>
+              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(rates.gold18kPurchase || 0)}</span>
             </div>
 
             {/* ROW 4 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-400 transition-colors">
               <span className="font-mono text-[11px] text-zinc-400 uppercase tracking-widest">Silver Sale</span>
-              <span className="font-serif font-black text-lg text-zinc-200">{formatPrice(calculatedRates.silver, true)}</span>
+              <span className="font-serif font-black text-lg text-zinc-200">{formatPrice(rates.silver, true)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-[11px] text-zinc-500 uppercase tracking-widest">Silver Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-400">{formatPrice(calculatedRates.silverPurchase, true)}</span>
+              <span className="font-serif font-bold text-base text-zinc-400">{formatPrice(rates.silverPurchase || 0, true)}</span>
             </div>
 
             {/* ROW 5 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-400 transition-colors">
               <span className="font-mono text-[11px] text-zinc-400 uppercase tracking-widest">Plat. Sale</span>
-              <span className="font-serif font-black text-lg text-zinc-300">{formatPrice(calculatedRates.platinum)}</span>
+              <span className="font-serif font-black text-lg text-zinc-300">{formatPrice(rates.platinum)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-[11px] text-zinc-500 uppercase tracking-widest">Plat. Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-400">{formatPrice(calculatedRates.platinumPurchase)}</span>
+              <span className="font-serif font-bold text-base text-zinc-400">{formatPrice(rates.platinumPurchase || 0)}</span>
             </div>
           </div>
         </div>

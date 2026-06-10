@@ -1,7 +1,7 @@
 import express from "express";
-import { syncRates } from "./syncService.ts";
-import { db } from "./db/index.ts";
-import { rates, syncLogs, calculationSettings } from "./db/schema.ts";
+import { syncRates } from "./syncService.js";
+import { db } from "./db/index.js";
+import { rates, syncLogs, calculationSettings } from "./db/schema.js";
 
 export const apiRouter = express.Router();
 

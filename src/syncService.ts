@@ -1,6 +1,6 @@
 import { eq, desc } from "drizzle-orm";
-import { db } from "./db/index.ts";
-import { rates, rateHistoryLogs, syncLogs, calculationSettings } from "./db/schema.ts";
+import { db } from "./db/index.js";
+import { rates, rateHistoryLogs, syncLogs, calculationSettings } from "./db/schema.js";
 
 const API_URL = "https://www.businessmantra.info/gold_rates/devi_gold_rate/api.php";
 
