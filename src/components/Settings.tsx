@@ -36,8 +36,7 @@ export default function SettingsComponent({
   const [company, setCompany] = useState<string>(systemConfig.companyName);
   const [contact, setContact] = useState<string>(systemConfig.contactNumber);
   const [speed, setSpeed] = useState<number>(systemConfig.tickerSpeed);
-  const [goldUrl, setGoldUrl] = useState<string>(systemConfig.goldRateApiUrl);
-  const [silverUrl, setSilverUrl] = useState<string>(systemConfig.silverRateApiUrl);
+  const [goldUrl, setGoldUrl] = useState<string>(systemConfig.rateApiUrl);
   const [whatsapp, setWhatsapp] = useState<boolean>(systemConfig.whatsappAlerts);
   const [email, setEmail] = useState<boolean>(systemConfig.emailAlerts);
 
@@ -49,8 +48,7 @@ export default function SettingsComponent({
       logoText: company.split(' ')[0] || 'DEVIJEWELLERS',
       contactNumber: contact.trim(),
       tickerSpeed: speed,
-      goldRateApiUrl: goldUrl.trim(),
-      silverRateApiUrl: silverUrl.trim(),
+      rateApiUrl: goldUrl.trim(),
       whatsappAlerts: whatsapp,
       emailAlerts: email
     };
@@ -213,21 +211,11 @@ export default function SettingsComponent({
 
             <div className="flex flex-col gap-3">
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Gold API Feed Endpoint</label>
+                <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Gold/Silver Global API Endpoint</label>
                 <input 
                   type="text" 
                   value={goldUrl}
                   onChange={(e) => setGoldUrl(e.target.value)}
-                  className="bg-[#0B0B0D] border border-zinc-850 rounded p-2 text-[10px] font-mono text-zinc-300 focus:outline-none"
-                />
-              </div>
-
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Silver API Feed Endpoint</label>
-                <input 
-                  type="text" 
-                  value={silverUrl}
-                  onChange={(e) => setSilverUrl(e.target.value)}
                   className="bg-[#0B0B0D] border border-zinc-850 rounded p-2 text-[10px] font-mono text-zinc-300 focus:outline-none"
                 />
               </div>
