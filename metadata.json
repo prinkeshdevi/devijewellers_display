@@ -1,0 +1,8 @@
+{
+  "name": "Jewellery Rate Display System",
+  "description": "An enterprise-grade showroom rate board and digital signage manager featuring TV Display, Mobile Control, Admin Dashboard, and Branch Rate Sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

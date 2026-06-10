@@ -1,0 +1,30 @@
+{
+  "entities": {
+    "Rate": {
+      "title": "Rate",
+      "description": "The current rate of jewellery metals",
+      "type": "object",
+      "properties": {
+        "gold24k": { "type": "number" },
+        "gold24kPurchase": { "type": "number" },
+        "gold22k": { "type": "number" },
+        "gold22kPurchase": { "type": "number" },
+        "gold20k": { "type": "number" },
+        "gold20kPurchase": { "type": "number" },
+        "gold18k": { "type": "number" },
+        "gold18kPurchase": { "type": "number" },
+        "silver": { "type": "number" },
+        "silverPurchase": { "type": "number" },
+        "platinum": { "type": "number" },
+        "platinumPurchase": { "type": "number" },
+        "updatedAt": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "system/rates": {
+      "schema": "#/entities/Rate",
+      "description": "Global rates available to all users"
+    }
+  }
+}
