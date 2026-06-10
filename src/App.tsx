@@ -6,6 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
 import { db, auth } from './lib/firebase';
+import { io } from 'socket.io-client';
 import { 
   JewelleryRates, 
   RateTrends, 
@@ -132,93 +133,104 @@ export default function App() {
 
   // Auto-sync rates periodically based on API
   useEffect(() => {
-    if (!systemConfig?.rateApiUrl) return;
+    // We now just establish a websocket to the backend 
+    const socket = io();
 
-    const fetchRates = async () => {
-      try {
-        const res = await fetch('/api/rates?url=' + encodeURIComponent(systemConfig.rateApiUrl));
-        if (!res.ok) return;
-        const data = await res.json();
-        
-        const new24k = typeof data['24K Gold'] === 'number' ? data['24K Gold'] : parseFloat(data['24K Gold']);
-        let newSilver = typeof data['Silver'] === 'number' ? data['Silver'] : parseFloat(data['Silver']);
-        
-        if (!isNaN(newSilver)) {
-          newSilver = newSilver * 100;
-        }
-
-        const savedCalc = localStorage.getItem('calcSettings');
-        const calcSettings = savedCalc ? JSON.parse(savedCalc) : {
-          gold24kPurPct: 0.985,
-          gold22kSalePct: 0.92,
-          gold22kPurPct: 0.90,
-          gold18kSalePct: 0.86,
-          gold18kPurPct: 0.80,
-          silverOffset: -5000,
-          platinumOffset: -4000
+    socket.on('rate_update', (socketData) => {
+      if (socketData.type === 'sync_success' && socketData.data) {
+        const received = socketData.data;
+        const newRates: JewelleryRates = {
+          gold24k: received.gold24kSale,
+          gold24kPurchase: received.gold24kPurchase,
+          gold22k: received.gold22kSale,
+          gold22kPurchase: received.gold22kPurchase,
+          gold20k: received.gold22kSale - 200, // Legacy fallback
+          gold20kPurchase: received.gold22kPurchase - 200,
+          gold18k: received.gold18kSale,
+          gold18kPurchase: received.gold18kPurchase,
+          silver: received.silverSale,
+          silverPurchase: received.silverPurchase,
+          platinum: received.platinumSale,
+          platinumPurchase: received.platinumPurchase,
         };
 
-        if (!isNaN(new24k) && !isNaN(newSilver)) {
-          const calculatedRates = {
-            gold24k: Math.round(new24k),
-            gold24kPurchase: Math.round(new24k * calcSettings.gold24kPurPct),
-            gold22k: Math.round(new24k * calcSettings.gold22kSalePct),
-            gold22kPurchase: Math.round(new24k * calcSettings.gold22kPurPct),
-            gold20k: Math.round(new24k * 0.833),
-            gold20kPurchase: Math.round(new24k * 0.833) - 200, 
-            gold18k: Math.round(new24k * calcSettings.gold18kSalePct),
-            gold18kPurchase: Math.round(new24k * calcSettings.gold18kPurPct),
-            silver: Math.round(newSilver),
-            silverPurchase: Math.round(newSilver + calcSettings.silverOffset),
-          };
+        const nowStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setLastSyncTime(nowStr);
+        saveToStorage('lastSyncTime', nowStr);
 
-          const nowStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-          setLastSyncTime(nowStr);
-          saveToStorage('lastSyncTime', nowStr);
-
-          setRates((prev: JewelleryRates) => {
-            if (prev.gold24k !== calculatedRates.gold24k || prev.silver !== calculatedRates.silver) {
-              const nextRates = { ...prev, ...calculatedRates };
-              saveToStorage('rates', nextRates);
-              // Save to Firestore
-              setDoc(doc(db, "system", "rates"), { 
-                ...nextRates, 
-                updatedAt: new Date().toISOString() 
-              }, { merge: true }).catch(err => console.error("Firebase write error:", err));
-              return nextRates;
-            }
-            return prev;
-          });
-        }
-      } catch (err) {
-        console.error("Auto Sync failed", err);
-      }
-    };
-
-    // Auto update every 1 minute (60000 ms)
-    const interval = setInterval(fetchRates, 60000);
-    // Trigger immediately
-    fetchRates();
-
-    return () => clearInterval(interval);
-  }, [systemConfig?.rateApiUrl]);
-
-  // Listen to Firestore for real-time rates from other clients
-  useEffect(() => {
-    const unsubscribeRates = onSnapshot(doc(db, "system", "rates"), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data() as JewelleryRates & { updatedAt?: string };
-        const { updatedAt, ...ratesData } = data;
-        setRates((prev) => {
-          // Prevent unnecessary state updates if values are same
-          if (JSON.stringify(prev) !== JSON.stringify(ratesData)) {
-            saveToStorage('rates', ratesData);
-            return ratesData as JewelleryRates;
+        setRates((prev: JewelleryRates) => {
+          if (JSON.stringify(prev) !== JSON.stringify(newRates)) {
+            saveToStorage('rates', newRates);
+            return newRates;
           }
           return prev;
         });
       }
     });
+
+    // Also fetch initial from backend
+    fetch('/api/rates/current')
+      .then(res => res.json())
+      .then(received => {
+        if (received && received.gold24kSale) {
+          const newRates: JewelleryRates = {
+            gold24k: received.gold24kSale,
+            gold24kPurchase: received.gold24kPurchase,
+            gold22k: received.gold22kSale,
+            gold22kPurchase: received.gold22kPurchase,
+            gold20k: received.gold22kSale - 200, 
+            gold20kPurchase: received.gold22kPurchase - 200,
+            gold18k: received.gold18kSale,
+            gold18kPurchase: received.gold18kPurchase,
+            silver: received.silverSale,
+            silverPurchase: received.silverPurchase,
+            platinum: received.platinumSale,
+            platinumPurchase: received.platinumPurchase,
+          };
+          setRates(newRates);
+        }
+      })
+      .catch(console.error);
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  // Listen to Firestore for real-time rates from other clients (disable, handled by websockets now)
+  useEffect(() => {
+    const fetchCurrentRates = () => {
+      fetch('/api/rates/current')
+        .then(res => res.json())
+        .then(received => {
+          if (received && received.gold24kSale) {
+            const newRates: JewelleryRates = {
+              gold24k: received.gold24kSale,
+              gold24kPurchase: received.gold24kPurchase,
+              gold22k: received.gold22kSale,
+              gold22kPurchase: received.gold22kPurchase,
+              gold20k: received.gold22kSale - 200, 
+              gold20kPurchase: received.gold22kPurchase - 200,
+              gold18k: received.gold18kSale,
+              gold18kPurchase: received.gold18kPurchase,
+              silver: received.silverSale,
+              silverPurchase: received.silverPurchase,
+              platinum: received.platinumSale,
+              platinumPurchase: received.platinumPurchase,
+            };
+            setRates((prev: JewelleryRates) => {
+              if (JSON.stringify(prev) !== JSON.stringify(newRates)) {
+                return newRates;
+              }
+              return prev;
+            });
+          }
+        })
+        .catch(console.error);
+    };
+
+    // Add 15 second fallback polling (Useful if running as Vercel Serverless Function without Socket.io support)
+    const fallbackPoll = setInterval(fetchCurrentRates, 15000);
 
     const unsubscribeHistory = onSnapshot(doc(db, "system", "history"), (docSnap) => {
       if (docSnap.exists()) {
@@ -231,7 +243,7 @@ export default function App() {
     });
 
     return () => {
-      unsubscribeRates();
+      clearInterval(fallbackPoll);
       unsubscribeHistory();
     };
   }, []);

@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { integer, pgTable, serial, text, timestamp } from 'drizzle-orm/pg-core';
+import { boolean, integer, numeric, pgTable, serial, text, timestamp, jsonb } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -8,15 +8,49 @@ export const users = pgTable('users', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
-// Since the user asked "add database to it" but this is a Jewellery Rate application,
-// We should perhaps store rate history.
-export const rateHistory = pgTable('rate_history', {
+export const rates = pgTable('rates', {
   id: serial('id').primaryKey(),
-  date: text('date').notNull(),
-  gold24k: integer('gold24k').notNull(),
-  gold22k: integer('gold22k').notNull(),
-  gold18k: integer('gold18k').notNull(),
-  silver: integer('silver').notNull(),
-  platinum: integer('platinum').notNull(),
+  gold24kSale: integer('gold_24k_sale').notNull(),
+  gold24kPurchase: integer('gold_24k_purchase').notNull(),
+  gold22kSale: integer('gold_22k_sale').notNull(),
+  gold22kPurchase: integer('gold_22k_purchase').notNull(),
+  gold18kSale: integer('gold_18k_sale').notNull(),
+  gold18kPurchase: integer('gold_18k_purchase').notNull(),
+  silverSale: integer('silver_sale').notNull(),
+  silverPurchase: integer('silver_purchase').notNull(),
+  platinumSale: integer('platinum_sale').notNull(),
+  platinumPurchase: integer('platinum_purchase').notNull(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+export const rateHistoryLogs = pgTable('rate_history_logs', {
+  id: serial('id').primaryKey(),
+  sourceApiResponse: jsonb('source_api_response'),
+  gold24kSale: integer('gold_24k_sale').notNull(),
+  gold24kPurchase: integer('gold_24k_purchase').notNull(),
+  gold22kSale: integer('gold_22k_sale').notNull(),
+  gold22kPurchase: integer('gold_22k_purchase').notNull(),
+  gold18kSale: integer('gold_18k_sale').notNull(),
+  gold18kPurchase: integer('gold_18k_purchase').notNull(),
+  silverSale: integer('silver_sale').notNull(),
+  silverPurchase: integer('silver_purchase').notNull(),
+  platinumSale: integer('platinum_sale').notNull(),
+  platinumPurchase: integer('platinum_purchase').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const syncLogs = pgTable('sync_logs', {
+  id: serial('id').primaryKey(),
+  status: text('status').notNull(), // 'success' or 'error'
+  apiResponse: jsonb('api_response'),
+  errorMessage: text('error_message'),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const calculationSettings = pgTable('calculation_settings', {
+  id: serial('id').primaryKey(),
+  syncIntervalMinutes: integer('sync_interval_minutes').notNull().default(1),
+  silverPurchaseOffset: integer('silver_purchase_offset').notNull().default(5000),
+  platinumPurchaseOffset: integer('platinum_purchase_offset').notNull().default(4000),
+  updatedAt: timestamp('updated_at').defaultNow(),
 });

@@ -42,30 +42,39 @@ export default function RateSync({
 
   // Calculation Settings
   const [calcSettings, setCalcSettings] = useState({
-    gold24kPurPct: 0.985,
-    gold22kSalePct: 0.92,
-    gold22kPurPct: 0.90,
-    gold18kSalePct: 0.86,
-    gold18kPurPct: 0.80,
-    silverOffset: -5000,
-    platinumOffset: -4000
+    syncIntervalMinutes: 1,
+    silverPurchaseOffset: 5000,
+    platinumPurchaseOffset: 4000
   });
 
-  // Load calculation settings from LocalStorage if they exist
+  // Load calculation settings from backend
   useEffect(() => {
-    const saved = localStorage.getItem('calcSettings');
-    if (saved) {
-      try {
-        setCalcSettings(JSON.parse(saved));
-      } catch(e) {}
-    }
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data) {
+          setCalcSettings({
+            syncIntervalMinutes: data.syncIntervalMinutes || 1,
+            silverPurchaseOffset: data.silverPurchaseOffset || 5000,
+            platinumPurchaseOffset: data.platinumPurchaseOffset || 4000
+          });
+        }
+      })
+      .catch(console.error);
   }, []);
 
-  const saveSettings = () => {
-    localStorage.setItem('calcSettings', JSON.stringify(calcSettings));
-    triggerSuccess('Calculation Settings Saved Successfully');
-    // Also push the rates when settings are saved
-    pushCalculatedRates();
+  const saveSettings = async () => {
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(calcSettings)
+      });
+      triggerSuccess('Calculation Settings Saved Successfully');
+      await syncMarketsApi(); // force a sync to apply
+    } catch (e: any) {
+      triggerError('Failed to save settings: ' + e.message);
+    }
   };
 
   const [apiUrl, setApiUrl] = useState(systemConfig.rateApiUrl || '');
@@ -77,50 +86,17 @@ export default function RateSync({
   
   const resetSettings = () => {
     const defaults = {
-      gold24kPurPct: 0.985,
-      gold22kSalePct: 0.92,
-      gold22kPurPct: 0.90,
-      gold18kSalePct: 0.86,
-      gold18kPurPct: 0.80,
-      silverOffset: -5000,
-      platinumOffset: -4000
+      syncIntervalMinutes: 1,
+      silverPurchaseOffset: 5000,
+      platinumPurchaseOffset: 4000
     };
     setCalcSettings(defaults);
-    localStorage.setItem('calcSettings', JSON.stringify(defaults));
     triggerSuccess('Formulas reset to defaults');
-  };
-
-  // Live Calculations
-  const calculatedRates = {
-    gold24k: Math.round(baseGold24k),
-    gold24kPurchase: Math.round(baseGold24k * calcSettings.gold24kPurPct),
-    gold22k: Math.round(baseGold24k * calcSettings.gold22kSalePct),
-    gold22kPurchase: Math.round(baseGold24k * calcSettings.gold22kPurPct),
-    gold20k: Math.round(baseGold24k * 0.833), // Default logic for 20K
-    gold20kPurchase: Math.round(baseGold24k * 0.833) - 200, 
-    gold18k: Math.round(baseGold24k * calcSettings.gold18kSalePct),
-    gold18kPurchase: Math.round(baseGold24k * calcSettings.gold18kPurPct),
-    silver: Math.round(baseSilver),
-    silverPurchase: Math.round(baseSilver + calcSettings.silverOffset),
-    platinum: Math.round(basePlatinum),
-    platinumPurchase: Math.round(basePlatinum + calcSettings.platinumOffset)
   };
 
   const triggerSuccess = (msg: string) => {
     setSuccessMsg(msg);
     setTimeout(() => setSuccessMsg(''), 4000);
-  };
-
-  const pushCalculatedRates = () => {
-    onUpdateRates(calculatedRates);
-    const historyEntry: RateHistoryEntry = {
-      date: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
-      rates: calculatedRates
-    };
-    // Ensure we don't duplicate history too often, or just push.
-    onUpdateHistory([...history, historyEntry]);
-    onTriggerLog('Rate Sync Master', `Calculated & published new rates to all endpoints using base 24K: ${baseGold24k}`);
-    triggerSuccess('Rates Formulated & Published Globally!');
   };
 
   const triggerError = (msg: string) => {
@@ -132,23 +108,11 @@ export default function RateSync({
     setLoadingApi(true);
     
     try {
-      const res = await fetch('/api/rates?url=' + encodeURIComponent(systemConfig.rateApiUrl));
+      const res = await fetch('/api/rates/sync', { method: 'POST' });
       if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       
-      const data = await res.json();
-      const new24k = typeof data['24K Gold'] === 'number' ? data['24K Gold'] : parseFloat(data['24K Gold']);
-      let newSilver = typeof data['Silver'] === 'number' ? data['Silver'] : parseFloat(data['Silver']);
-
-      // The API returns Silver rate for 10gm. We need it for 1kg (1000gm).
-      if (!isNaN(newSilver)) {
-        newSilver = newSilver * 100;
-      }
-
-      if (!isNaN(new24k)) setBaseGold24k(new24k);
-      if (!isNaN(newSilver)) setBaseSilver(newSilver);
-
-      onTriggerLog('Live API Sync', `Fetched Base Rates from API. 24K: ${new24k}, Silver (Per Kg): ${newSilver}`);
-      triggerSuccess('Live API Data Fetched Successfully.');
+      onTriggerLog('Live API Sync', `Forced sync from master API successfully.`);
+      triggerSuccess('Live API Data Fetched and Updated Successfully.');
     } catch (err) {
       console.error('Fetch failed', err);
       onTriggerLog('Live API Sync Error', 'Failed to fetch rates from API');
@@ -288,88 +252,6 @@ export default function RateSync({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
-                  <span>24K Purchase</span>
-                  <span className="text-zinc-600 font-normal">% of 24K Sale</span>
-                </label>
-                <div className="relative">
-                  <input 
-                    type="number" step="0.001"
-                    value={calcSettings.gold24kPurPct}
-                    onChange={(e)=>setCalcSettings({...calcSettings, gold24kPurPct: parseFloat(e.target.value)})}
-                    className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 font-mono text-white text-sm"
-                  />
-                </div>
-              </div>
-              <div className="flex items-end text-zinc-500 font-mono text-[10px] pb-3 uppercase italic">
-                (Default: 0.985)
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
-                  <span>22K Sale</span>
-                  <span className="text-zinc-600 font-normal">% of 24K</span>
-                </label>
-                <div className="relative">
-                  <input 
-                    type="number" step="0.001"
-                    value={calcSettings.gold22kSalePct}
-                    onChange={(e)=>setCalcSettings({...calcSettings, gold22kSalePct: parseFloat(e.target.value)})}
-                    className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 font-mono text-white text-sm"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
-                  <span>22K Purchase</span>
-                  <span className="text-zinc-600 font-normal">% of 24K</span>
-                </label>
-                <div className="relative">
-                  <input 
-                    type="number" step="0.001"
-                    value={calcSettings.gold22kPurPct}
-                    onChange={(e)=>setCalcSettings({...calcSettings, gold22kPurPct: parseFloat(e.target.value)})}
-                    className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 font-mono text-white text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
-                  <span>18K Sale</span>
-                  <span className="text-zinc-600 font-normal">% of 24K</span>
-                </label>
-                <div className="relative">
-                  <input 
-                    type="number" step="0.001"
-                    value={calcSettings.gold18kSalePct}
-                    onChange={(e)=>setCalcSettings({...calcSettings, gold18kSalePct: parseFloat(e.target.value)})}
-                    className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 font-mono text-white text-sm"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
-                  <span>18K Purchase</span>
-                  <span className="text-zinc-600 font-normal">% of 24K</span>
-                </label>
-                <div className="relative">
-                  <input 
-                    type="number" step="0.001"
-                    value={calcSettings.gold18kPurPct}
-                    onChange={(e)=>setCalcSettings({...calcSettings, gold18kPurPct: parseFloat(e.target.value)})}
-                    className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 font-mono text-white text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
                 <label className="block text-[11px] font-mono text-zinc-300 uppercase tracking-widest mb-1.5 flex justify-between items-center">
                   <span>Silver Pur. Offset</span>
                   <span className="text-zinc-600 font-normal">flat</span>
@@ -378,8 +260,8 @@ export default function RateSync({
                   <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">+</span>
                   <input 
                     type="number" 
-                    value={calcSettings.silverOffset}
-                    onChange={(e)=>setCalcSettings({...calcSettings, silverOffset: parseInt(e.target.value)})}
+                    value={calcSettings.silverPurchaseOffset}
+                    onChange={(e)=>setCalcSettings({...calcSettings, silverPurchaseOffset: parseInt(e.target.value)})}
                     className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 pl-7 font-mono text-white text-sm"
                   />
                 </div>
@@ -393,8 +275,8 @@ export default function RateSync({
                   <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">+</span>
                   <input 
                     type="number" 
-                    value={calcSettings.platinumOffset}
-                    onChange={(e)=>setCalcSettings({...calcSettings, platinumOffset: parseInt(e.target.value)})}
+                    value={calcSettings.platinumPurchaseOffset}
+                    onChange={(e)=>setCalcSettings({...calcSettings, platinumPurchaseOffset: parseInt(e.target.value)})}
                     className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 pl-7 font-mono text-white text-sm"
                   />
                 </div>
@@ -496,13 +378,16 @@ export default function RateSync({
           <div className="space-y-6">
             <div>
               <label className="block text-xs font-mono text-[#D4AF37] uppercase tracking-widest mb-3">Auto Sync Interval (Minutes)</label>
-              <select className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded-lg p-3 font-mono text-zinc-300 text-sm outline-none transition-colors">
-                <option>1 Minute</option>
-                <option>5 Minutes</option>
-                <option>15 Minutes</option>
-                <option>30 Minutes</option>
-                <option>60 Minutes</option>
-                <option>Manual Only</option>
+              <select 
+                 value={calcSettings.syncIntervalMinutes}
+                 onChange={(e) => setCalcSettings({...calcSettings, syncIntervalMinutes: parseInt(e.target.value)})}
+                 className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded-lg p-3 font-mono text-zinc-300 text-sm outline-none transition-colors">
+                <option value={1}>1 Minute</option>
+                <option value={5}>5 Minutes</option>
+                <option value={15}>15 Minutes</option>
+                <option value={30}>30 Minutes</option>
+                <option value={60}>60 Minutes</option>
+                <option value={9999999}>Manual Only</option>
               </select>
             </div>
 
@@ -524,7 +409,7 @@ export default function RateSync({
             </div>
 
             <div className="mt-4 pt-2">
-              <button onClick={() => triggerSuccess('Sync Settings Saved')} className="w-full sm:w-auto bg-transparent border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black font-serif font-bold text-sm px-6 py-3 rounded transition-all uppercase tracking-wide">
+              <button onClick={saveSettings} className="w-full sm:w-auto bg-transparent border border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-black font-serif font-bold text-sm px-6 py-3 rounded transition-all uppercase tracking-wide">
                 Save Sync Settings
               </button>
             </div>
@@ -624,7 +509,7 @@ export default function RateSync({
             </button>
           </div>
         </div>
-        <div className="w-full overflow-x-auto">
+        <div className="w-full overflow-x-auto mb-10">
           <table className="w-full text-left border-collapse min-w-[900px]">
             <thead>
               <tr className="border-b border-zinc-800 bg-[#0B0B0D]/50">
@@ -663,8 +548,72 @@ export default function RateSync({
             </tbody>
           </table>
         </div>
+
+        {/* SECTION 7: API CONNECTION DIAGNOSTICS & LOGS */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-zinc-800 pt-8 pb-4 mb-6 gap-4">
+          <h2 className="text-xl font-serif font-black text-[#F8F5EE] uppercase tracking-wider flex items-center gap-2">
+            <Activity className="w-5 h-5 text-[#D4AF37]" /> System Sync Logs
+          </h2>
+          <button 
+             onClick={syncMarketsApi}
+             className="bg-[#0B0B0D] border border-zinc-700 hover:border-[#D4AF37] text-zinc-300 hover:text-[#D4AF37] font-mono text-[10px] uppercase font-bold px-3 py-2 rounded flex items-center gap-2 transition-all">
+            <RefreshCw className="w-3.5 h-3.5"/> Refresh Logs
+          </button>
+        </div>
+        <div className="w-full overflow-x-auto">
+          <SystemSyncLogs />
+        </div>
       </div>
 
     </div>
+  );
+}
+
+function SystemSyncLogs() {
+  const [logs, setLogs] = useState<any[]>([]);
+
+  const fetchLogs = () => {
+    fetch('/api/logs')
+      .then(res => res.json())
+      .then(setLogs)
+      .catch(console.error);
+  };
+
+  useEffect(() => {
+    fetchLogs();
+    const int = setInterval(fetchLogs, 60000);
+    return () => clearInterval(int);
+  }, []);
+
+  return (
+    <table className="w-full text-left border-collapse min-w-[600px]">
+      <thead>
+        <tr className="border-b border-zinc-800 bg-[#0B0B0D]/50">
+          <th className="p-4 text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">Timestamp</th>
+          <th className="p-4 text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">Status</th>
+          <th className="p-4 text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold">Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {logs.map((log: any, i: number) => (
+          <tr key={i} className="border-b border-zinc-800/50 hover:bg-[#D4AF37]/5 transition-colors group">
+            <td className="p-4 text-[11px] font-mono text-zinc-400">{new Date(log.createdAt).toLocaleString()}</td>
+            <td className="p-4">
+              <span className={`text-[10px] font-bold px-2 py-1 rounded bg-opacity-10 ${log.status === 'success' ? 'text-emerald-500 bg-emerald-500' : 'text-red-500 bg-red-500'} uppercase font-mono`}>
+                {log.status}
+              </span>
+            </td>
+            <td className="p-4 text-[11px] font-mono text-zinc-500">
+              {log.status === 'success' ? 'Rates fetched and calculated successfully' : log.errorMessage}
+            </td>
+          </tr>
+        ))}
+        {logs.length === 0 && (
+          <tr>
+            <td colSpan={3} className="p-12 text-center text-zinc-500 font-mono text-sm tracking-wide uppercase">No sync logs available.</td>
+          </tr>
+        )}
+      </tbody>
+    </table>
   );
 }

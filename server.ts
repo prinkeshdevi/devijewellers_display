@@ -2,29 +2,34 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { requireAuth, AuthRequest } from './src/middleware/auth.ts';
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { startSyncService, setBroadcastCallback, syncRates } from "./src/syncService.ts";
+import { db } from "./src/db/index.ts";
+import { rates, rateHistoryLogs, syncLogs, calculationSettings } from "./src/db/schema.ts";
+import { apiRouter } from "./src/api.ts";
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
+  
+  const httpServer = createServer(app);
+  const io = new Server(httpServer, {
+    cors: { origin: "*" }
+  });
 
   // JSON Body Parser
   app.use(express.json());
 
-  // API routes
-  app.get("/api/rates", async (req, res) => {
-    try {
-      const url = req.query.url ? String(req.query.url) : 'https://www.businessmantra.info/gold_rates/devi_gold_rate/api.php';
-      const response = await fetch(url);
-      if (!response.ok) {
-        return res.status(response.status).json({ error: `HTTP ${response.status}` });
-      }
-      const data = await response.json();
-      res.json(data);
-    } catch (error: any) {
-      console.error('Error fetching rates:', error);
-      res.status(500).json({ error: error.message || 'Internal Server Error' });
-    }
+  setBroadcastCallback((data) => {
+    io.emit("rate_update", data);
   });
+
+  // Start background fetch worker
+  startSyncService();
+
+  // API routes
+  app.use("/api", apiRouter);
 
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
@@ -54,7 +59,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }
