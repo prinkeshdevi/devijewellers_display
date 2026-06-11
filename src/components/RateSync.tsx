@@ -50,9 +50,12 @@ export default function RateSync({
   // Load calculation settings from backend
   useEffect(() => {
     fetch('/api/settings')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        return res.json();
+      })
       .then(data => {
-        if (data) {
+        if (data && !data.error) {
           setCalcSettings({
             syncIntervalMinutes: data.syncIntervalMinutes || 1,
             silverPurchaseOffset: data.silverPurchaseOffset || 5000,
@@ -600,9 +603,22 @@ function SystemSyncLogs() {
 
   const fetchLogs = () => {
     fetch('/api/logs')
-      .then(res => res.json())
-      .then(setLogs)
-      .catch(console.error);
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        return res.json();
+      })
+      .then(data => {
+        if (Array.isArray(data)) {
+          setLogs(data);
+        } else {
+          console.error("Failed to fetch logs:", data);
+          setLogs([]);
+        }
+      })
+      .catch(err => {
+        console.error("Fetch logs error:", err);
+        setLogs([]);
+      });
   };
 
   useEffect(() => {

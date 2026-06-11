@@ -13,7 +13,14 @@ export const setBroadcastCallback = (cb: (data: any) => void) => {
 
 export const syncRates = async () => {
   try {
-    const settingsResult = await db.select().from(calculationSettings).limit(1);
+    let settingsResult;
+    try {
+      settingsResult = await db.select().from(calculationSettings).limit(1);
+    } catch (dbErr: any) {
+      console.warn("DB Select Error inside syncRates, assuming dropped connection. Retrying...", dbErr);
+      settingsResult = await db.select().from(calculationSettings).limit(1);
+    }
+    
     let settings = settingsResult[0];
     if (!settings) {
       const inserted = await db.insert(calculationSettings).values({}).returning();
@@ -91,38 +98,26 @@ export const syncRates = async () => {
 
   } catch (error: any) {
     console.error("Rate Sync Error:", error);
-    await db.insert(syncLogs).values({
-      status: "error",
-      errorMessage: error.message || String(error)
-    });
+    try {
+      await db.insert(syncLogs).values({
+        status: "error",
+        errorMessage: error.message || String(error)
+      });
+    } catch (logError) {
+      console.error("Failed to write to syncLogs:", logError);
+    }
     if (broadcastCallback) {
       broadcastCallback({ type: "sync_error", message: error.message });
     }
+    throw error;
   }
 };
 
 export const startSyncService = async () => {
-  // Run once immediately
-  await syncRates();
-  
-  // Re-read settings periodically to update interval
-  // For simplicity, we just check interval every minute
-  setInterval(async () => {
-    try {
-      const settings = await db.select().from(calculationSettings).limit(1);
-      const minutes = settings[0]?.syncIntervalMinutes || 1;
-      
-      // We can manage exactly when to run by storing a lastSyncTime in memory,
-      // or just re-schedule if interval changes. 
-      // A quick hack: check last sync time.
-      const lastSyncLog = await db.select().from(syncLogs).orderBy(desc(syncLogs.createdAt)).limit(1);
-      const lastSync = lastSyncLog[0]?.createdAt;
-      
-      if (!lastSync || (Date.now() - lastSync.getTime() >= minutes * 60000)) {
-        await syncRates();
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  }, 10 * 1000); // Check every 10 seconds if it's time to sync
+  // Run once immediately on startup
+  try {
+    await syncRates();
+  } catch (e) {
+    console.error("Initial syncRates failed:", e);
+  }
 };

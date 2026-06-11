@@ -170,7 +170,10 @@ export default function App() {
 
     // Also fetch initial from backend
     fetch('/api/rates/current')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        return res.json();
+      })
       .then(received => {
         if (received && received.gold24kSale) {
           const newRates: JewelleryRates = {
@@ -201,7 +204,10 @@ export default function App() {
   useEffect(() => {
     const fetchCurrentRates = () => {
       fetch('/api/rates/current')
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+          return res.json();
+        })
         .then(received => {
           if (received && received.gold24kSale) {
             const newRates: JewelleryRates = {
