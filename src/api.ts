@@ -58,7 +58,9 @@ apiRouter.get("/init-db", async (req, res) => {
         email TEXT NOT NULL,
         created_at TIMESTAMP DEFAULT NOW()
       );
-      
+    `);
+    
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS rates (
         id SERIAL PRIMARY KEY,
         gold_24k_sale INTEGER NOT NULL,
@@ -73,7 +75,9 @@ apiRouter.get("/init-db", async (req, res) => {
         platinum_purchase INTEGER NOT NULL,
         updated_at TIMESTAMP DEFAULT NOW()
       );
-      
+    `);
+    
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS rate_history_logs (
         id SERIAL PRIMARY KEY,
         source_api_response JSONB,
@@ -89,7 +93,9 @@ apiRouter.get("/init-db", async (req, res) => {
         platinum_purchase INTEGER NOT NULL,
         created_at TIMESTAMP DEFAULT NOW()
       );
-      
+    `);
+    
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS sync_logs (
         id SERIAL PRIMARY KEY,
         status TEXT NOT NULL,
@@ -97,7 +103,9 @@ apiRouter.get("/init-db", async (req, res) => {
         error_message TEXT,
         created_at TIMESTAMP DEFAULT NOW()
       );
-      
+    `);
+    
+    await db.execute(sql`
       CREATE TABLE IF NOT EXISTS calculation_settings (
         id SERIAL PRIMARY KEY,
         sync_interval_minutes INTEGER NOT NULL DEFAULT 1,

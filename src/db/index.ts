@@ -8,8 +8,9 @@ export const createPool = () => {
     return new pg.Pool({
       connectionString: process.env.POSTGRES_URL,
       max: 10,
-      connectionTimeoutMillis: 15000,
+      connectionTimeoutMillis: 5000,
       idleTimeoutMillis: 10000,
+      ssl: process.env.POSTGRES_URL.includes('localhost') ? false : { rejectUnauthorized: false }
     });
   }
 
