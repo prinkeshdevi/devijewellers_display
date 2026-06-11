@@ -33,7 +33,13 @@ apiRouter.get("/rates/current", async (req, res) => {
     res.json(current[0] || null);
   } catch (error: any) {
     console.error('Error fetching rates:', error);
-    res.status(500).json({ error: error.message || 'Internal Server Error' });
+    const rootCause = error.cause ? String(error.cause) : error.stack;
+    const isDbUnconfigured = rootCause && rootCause.includes('ECONNREFUSED 127.0.0.1') || 
+                             error.message && error.message.includes('ECONNREFUSED 127.0.0.1');
+    const msg = isDbUnconfigured 
+      ? 'Database requires configuration. Please add POSTGRES_URL or DATABASE_URL environment variables to your deployment.'
+      : error.message || 'Internal Server Error';
+    res.status(500).json({ error: msg });
   }
 });
 
@@ -43,7 +49,12 @@ apiRouter.post("/rates/sync", async (req, res) => { // Manual sync trigger
     res.json({ success: true });
   } catch (error: any) {
     const rootCause = error.cause ? String(error.cause) : error.stack;
-    res.status(500).json({ error: error.message + ' | CAUSE: ' + rootCause });
+    const isDbUnconfigured = rootCause.includes('ECONNREFUSED 127.0.0.1') || 
+                             error.message.includes('ECONNREFUSED 127.0.0.1');
+    const msg = isDbUnconfigured 
+      ? 'Database requires configuration. Please add POSTGRES_URL or DATABASE_URL environment variables to your deployment.'
+      : error.message + ' | CAUSE: ' + rootCause;
+    res.status(500).json({ error: msg });
   }
 });
 
@@ -51,9 +62,77 @@ apiRouter.post("/rates/sync", async (req, res) => { // Manual sync trigger
 apiRouter.get("/init-db", async (req, res) => {
   try {
     // Database schema is managed via Drizzle migrations internally in AI Studio.
-    // The application user does not have DDL privileges, so we do not run CREATE TABLE here.
-    res.json({ success: true, message: "Database is managed by drizzle." });
+    // However, for external deployments (like Vercel), we allow creating tables here.
+    
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        uid TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS rates (
+        id SERIAL PRIMARY KEY,
+        gold_24k_sale INTEGER NOT NULL,
+        gold_24k_purchase INTEGER NOT NULL,
+        gold_22k_sale INTEGER NOT NULL,
+        gold_22k_purchase INTEGER NOT NULL,
+        gold_18k_sale INTEGER NOT NULL,
+        gold_18k_purchase INTEGER NOT NULL,
+        silver_sale INTEGER NOT NULL,
+        silver_purchase INTEGER NOT NULL,
+        platinum_sale INTEGER NOT NULL,
+        platinum_purchase INTEGER NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS rate_history_logs (
+        id SERIAL PRIMARY KEY,
+        source_api_response JSONB,
+        gold_24k_sale INTEGER NOT NULL,
+        gold_24k_purchase INTEGER NOT NULL,
+        gold_22k_sale INTEGER NOT NULL,
+        gold_22k_purchase INTEGER NOT NULL,
+        gold_18k_sale INTEGER NOT NULL,
+        gold_18k_purchase INTEGER NOT NULL,
+        silver_sale INTEGER NOT NULL,
+        silver_purchase INTEGER NOT NULL,
+        platinum_sale INTEGER NOT NULL,
+        platinum_purchase INTEGER NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS sync_logs (
+        id SERIAL PRIMARY KEY,
+        status TEXT NOT NULL,
+        api_response JSONB,
+        error_message TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS calculation_settings (
+        id SERIAL PRIMARY KEY,
+        sync_interval_minutes INTEGER NOT NULL DEFAULT 1,
+        silver_purchase_offset INTEGER NOT NULL DEFAULT 5000,
+        platinum_purchase_offset INTEGER NOT NULL DEFAULT 4000,
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    res.json({ success: true, message: "Database initialized successfully! All required tables are structured." });
   } catch (error: any) {
+    if (error.message?.includes("permission denied")) {
+      return res.json({ success: true, message: "On AI Studio, database is already managed by drizzle. Initialization skipped." });
+    }
     res.status(500).json({ error: error.message || 'Error initializing DB' });
   }
 });
@@ -64,7 +143,12 @@ apiRouter.get("/rates/sync", async (req, res) => {
     res.json({ success: true });
   } catch (error: any) {
     const rootCause = error.cause ? String(error.cause) : error.stack;
-    res.status(500).json({ error: error.message + ' | CAUSE: ' + rootCause });
+    const isDbUnconfigured = rootCause.includes('ECONNREFUSED 127.0.0.1') || 
+                             error.message.includes('ECONNREFUSED 127.0.0.1');
+    const msg = isDbUnconfigured 
+      ? 'Database requires configuration. Please add POSTGRES_URL or DATABASE_URL environment variables to your deployment.'
+      : error.message + ' | CAUSE: ' + rootCause;
+    res.status(500).json({ error: msg });
   }
 });
 

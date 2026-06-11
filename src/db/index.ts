@@ -3,26 +3,30 @@ import pg from 'pg';
 import * as schema from './schema.js';
 
 export const createPool = () => {
+  const connectionString = process.env.POSTGRES_URL || process.env.DATABASE_URL;
+
   // If Vercel Postgres is used (or regular Postgres URL is provided)
-  if (process.env.POSTGRES_URL) {
+  if (connectionString) {
     return new pg.Pool({
-      connectionString: process.env.POSTGRES_URL,
+      connectionString: connectionString,
       max: 10,
       connectionTimeoutMillis: 5000,
       idleTimeoutMillis: 10000,
-      ssl: process.env.POSTGRES_URL.includes('localhost') ? false : { rejectUnauthorized: false }
+      ssl: connectionString.includes('localhost') ? false : { rejectUnauthorized: false }
     });
   }
 
   // Graceful fallback if no env variables exist (prevents Vercel 500 crash on module load)
   if (!process.env.SQL_HOST) {
     console.warn("DATABASE CONFIGURATION MISSING: SQL_HOST or POSTGRES_URL environment variables are not set. The database connection will fail if queried.");
+    
+    // Instead of localhost which gives ECONNREFUSED, we can create a pool that will give a more descriptive auth failure 
+    // or we can just accept what it is and in the app code, log a clearer error.
     return new pg.Pool({
-      // Provide dummy values to prevent crash, queries will fail cleanly
       host: 'localhost',
       port: 5432,
       max: 1,
-      connectionTimeoutMillis: 1000, // Fail fast
+      connectionTimeoutMillis: 1000,
     });
   }
 
