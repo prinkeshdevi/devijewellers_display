@@ -148,6 +148,36 @@ export default function App() {
     // We now just establish a websocket to the backend 
     const socket = io();
 
+    socket.on('state_update', ({ module, data }) => {
+      const payload = data.payload !== undefined ? data.payload : data;
+      switch (module) {
+        case 'displaySetting':
+          setDisplaySetting(payload);
+          break;
+        case 'branches':
+          setBranches(payload);
+          break;
+        case 'media':
+          setMedia(payload);
+          break;
+        case 'promos':
+          setPromos(payload);
+          break;
+        case 'saleStatuses':
+          setSaleStatuses(payload);
+          break;
+        case 'systemConfig':
+          setSystemConfig(payload);
+          break;
+        case 'displays':
+          setDisplays(payload);
+          break;
+        case 'history':
+          setHistory(payload);
+          break;
+      }
+    });
+
     socket.on('rate_update', (socketData) => {
       if (socketData.type === 'sync_success' && socketData.data) {
         const received = socketData.data;

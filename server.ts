@@ -21,6 +21,7 @@ async function startServer() {
 
   // JSON Body Parser
   app.use(express.json());
+  app.set("io", io);
 
   setBroadcastCallback((data) => {
     io.emit("rate_update", data);

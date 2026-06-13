@@ -223,6 +223,12 @@ apiRouter.post("/state/:module", async (req, res) => {
       set: { data: req.body as any, updatedAt: new Date() }
     });
     
+    // Broadcast to other clients that a state changed
+    const io = req.app.get("io");
+    if (io) {
+      io.emit("state_update", { module, data: req.body });
+    }
+    
     res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
