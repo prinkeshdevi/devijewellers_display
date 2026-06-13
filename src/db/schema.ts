@@ -54,3 +54,10 @@ export const calculationSettings = pgTable('calculation_settings', {
   platinumPurchaseOffset: integer('platinum_purchase_offset').notNull().default(4000),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
+
+export const globalState = pgTable('global_state', {
+  id: serial('id').primaryKey(),
+  moduleName: text('module_name').notNull().unique(), // e.g. 'displaySetting', 'promos', 'media', 'branches'
+  data: jsonb('data').notNull(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});

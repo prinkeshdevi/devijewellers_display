@@ -2,7 +2,7 @@ import express from "express";
 import { syncRates } from "./syncService.js";
 import { sql } from 'drizzle-orm';
 import { db } from "./db/index.js";
-import { rates, syncLogs, calculationSettings } from "./db/schema.js";
+import { rates, syncLogs, calculationSettings, globalState } from "./db/schema.js";
 
 export const apiRouter = express.Router();
 
@@ -128,6 +128,15 @@ apiRouter.get("/init-db", async (req, res) => {
       );
     `);
 
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS global_state (
+        id SERIAL PRIMARY KEY,
+        module_name TEXT NOT NULL UNIQUE,
+        data JSONB NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
     res.json({ success: true, message: "Database initialized successfully! All required tables are structured." });
   } catch (error: any) {
     if (error.message?.includes("permission denied")) {
@@ -186,6 +195,39 @@ apiRouter.get("/logs", async (req, res) => {
       return await db.select().from(syncLogs).orderBy(syncLogs.createdAt).limit(20);
     });
     res.json(recentLogs);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// New Unified API endpoints for Android App (Media, Promos, Configs, Branches, etc.)
+apiRouter.get("/state/:module", async (req, res) => {
+  try {
+    const { module } = req.params;
+    let current = await db.select().from(globalState).where(sql`${globalState.moduleName} = ${module}`).limit(1);
+    
+    if (!current || current.length === 0) {
+      return res.json({ success: true, data: null, message: 'Settings not yet configured in DB. Rely on internal defaults.' });
+    }
+    res.json({ success: true, data: current[0].data });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+apiRouter.post("/state/:module", async (req, res) => {
+  try {
+    const { module } = req.params;
+    if (!req.body || typeof req.body !== 'object') {
+      return res.status(400).json({ error: 'Body must be a JSON object or array' });
+    }
+    
+    await db.insert(globalState).values({ moduleName: module, data: req.body as any }).onConflictDoUpdate({
+      target: globalState.moduleName,
+      set: { data: req.body as any, updatedAt: new Date() }
+    });
+    
+    res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
