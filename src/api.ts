@@ -21,12 +21,8 @@ apiRouter.get("/rates/current", async (req, res) => {
       const settingsLog = await db.select().from(calculationSettings).limit(1).catch(() => [{ syncIntervalMinutes: 1 }]);
       const minutes = settingsLog[0]?.syncIntervalMinutes || 1;
       if (Date.now() - lastUpdate > minutes * 60000) {
-        try {
-          await syncRates(); // update db
-          current = await db.select().from(rates).limit(1);
-        } catch (syncErr) {
-          console.error("Lazy sync failed:", syncErr);
-        }
+        // Fire sync in background, don't await, so it doesn't block clients loading immediately
+        syncRates().catch(e => console.error("Lazy sync failed in background:", e));
       }
     }
     

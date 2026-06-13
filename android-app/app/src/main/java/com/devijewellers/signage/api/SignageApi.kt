@@ -12,15 +12,15 @@ import retrofit2.http.POST
 
 interface SignageApi {
     
-    @GET("/api/state/displaySetting")
+    @GET("api/state/displaySetting")
     suspend fun getDisplaySettings(): Response<ApiResponse<DisplaySetting>>
 
-    @POST("/api/state/displaySetting")
+    @POST("api/state/displaySetting")
     suspend fun updateDisplaySettings(@Body request: SyncRequest<DisplaySetting>): Response<Void>
 
     companion object {
         // Configured to connect to your live Vercel web application backend
-        private const val BASE_URL = "https://devijewellers-display.vercel.app"
+        private const val BASE_URL = "https://ais-pre-6cajhzszuqvnfvet72e2bx-711791395644.asia-southeast1.run.app/"
 
         fun create(): SignageApi {
             return Retrofit.Builder()

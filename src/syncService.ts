@@ -27,7 +27,16 @@ export const syncRates = async () => {
       settings = inserted[0];
     }
     
-    const response = await fetch(API_URL);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 seconds max
+
+    let response;
+    try {
+      response = await fetch(API_URL, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    
     if (!response.ok) {
       throw new Error(`API returned HTTP ${response.status}`);
     }

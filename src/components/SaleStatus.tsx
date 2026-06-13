@@ -366,6 +366,19 @@ export default function SaleStatus({
       };
 
       try {
+        // Android WebView Native share intercept
+        if ((window as any).AndroidNative && (window as any).AndroidNative.shareImage) {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64data = reader.result as string;
+            const targetPkg = platform === 'whatsapp' ? 'com.whatsapp' : (platform === 'instagram' ? 'com.instagram.android' : '');
+            (window as any).AndroidNative.shareImage(base64data, shareData.title, shareData.text, targetPkg);
+            onTriggerLog('Share Rate Poster', `Native Android App Share triggered for ${platform} - Branch: ${activeBranchName}.`);
+          };
+          reader.readAsDataURL(blob);
+          return;
+        }
+
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share(shareData);
           onTriggerLog('Share Rate Poster', `Successfully requested OS Native Share for ${platform} - Branch: ${activeBranchName}.`);

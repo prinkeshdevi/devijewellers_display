@@ -382,19 +382,19 @@ export default function MediaManager({
                 <div className="flex flex-col gap-2 pt-1">
                   <span className="text-[10px] font-mono uppercase tracking-widest text-[#D4AF37] block">Drag & Drop Digital Master File</span>
                   
-                  <div
+                  <label
                     onDragEnter={handleDrag}
                     onDragOver={handleDrag}
                     onDragLeave={handleDrag}
                     onDrop={handleDrop}
-                    className={`border-2 border-dashed rounded-lg p-5 flex flex-col items-center justify-center text-center transition-all cursor-pointer ${
+                    htmlFor="direct-file-input"
+                    className={`border-2 border-dashed rounded-lg p-5 flex flex-col items-center justify-center text-center transition-all cursor-pointer block w-full ${
                       dragActive 
                         ? 'border-[#D4AF37] bg-[#D4AF37]/10' 
                         : newUrl 
                           ? 'border-emerald-500/40 bg-emerald-500/5' 
                           : 'border-zinc-800 hover:border-zinc-700 bg-black/25'
                     }`}
-                    onClick={() => document.getElementById('direct-file-input')?.click()}
                   >
                     <input
                       id="direct-file-input"
@@ -448,7 +448,7 @@ export default function MediaManager({
                         </button>
                       </div>
                     )}
-                  </div>
+                  </label>
                 </div>
               )}
             </div>
