@@ -133,7 +133,8 @@ apiRouter.get("/init-db", async (req, res) => {
     if (error.message?.includes("permission denied")) {
       return res.json({ success: true, message: "On AI Studio, database is already managed by drizzle. Initialization skipped." });
     }
-    res.status(500).json({ error: error.message || 'Error initializing DB' });
+    const rootCause = error.cause ? String(error.cause) : error.stack;
+    res.status(500).json({ error: error.message + ' | CAUSE: ' + rootCause });
   }
 });
 

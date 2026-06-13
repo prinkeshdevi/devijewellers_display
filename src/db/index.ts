@@ -8,11 +8,13 @@ export const createPool = () => {
   // If Vercel Postgres is used (or regular Postgres URL is provided)
   if (connectionString) {
     let finalConnectionString = connectionString;
-    // Strip sslmode=require to avoid self-signed certificate errors with raw pg connection
-    // and rely on the internal ssl: { rejectUnauthorized: false } setting.
-    if (finalConnectionString.includes('sslmode=require')) {
-        finalConnectionString = finalConnectionString.replace('?sslmode=require', '').replace('&sslmode=require', '');
-        finalConnectionString = finalConnectionString.replace('?supa=base-pooler.x', ''); // Handle supabase extensions securely
+    try {
+      const parsedUrl = new URL(connectionString);
+      // Remove query parameters that conflict with the `ssl` config object
+      parsedUrl.search = '';
+      finalConnectionString = parsedUrl.toString();
+    } catch(e) {
+      // fallback if not a valid URL
     }
 
     return new pg.Pool({
