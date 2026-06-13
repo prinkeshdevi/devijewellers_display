@@ -436,21 +436,34 @@ export default function TVDisplay({
 
         {/* Center Logo */}
         <div className="flex flex-1 justify-center items-center">
-          <img 
-            src="/logo.png" 
-            alt="Devi Jewellers Logo" 
-            className="h-16 md:h-20 lg:h-24 max-w-[400px] object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
-            onError={(e) => {
-              if (e.currentTarget.src.includes('.png')) {
-                e.currentTarget.src = '/logo.jpg';
-              } else if (e.currentTarget.src.includes('.jpg')) {
-                e.currentTarget.src = '/logo.jpeg';
-              } else {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling?.classList.remove('hidden');
-              }
-            }}
-          />
+          {(companyConfig?.logoImageBase64) ? (
+            <img 
+              src={companyConfig.logoImageBase64}
+              alt={companyConfig.logoText || "Brand Logo"} 
+              className="h-16 md:h-20 lg:h-24 max-w-[400px] object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] bg-black/40 p-2 rounded"
+            />
+          ) : (
+            <>
+              <img 
+                src="/logo.png" 
+                alt="Devi Jewellers Logo" 
+                className="h-16 md:h-20 lg:h-24 max-w-[400px] object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
+                onError={(e) => {
+                  if (e.currentTarget.src.includes('.png')) {
+                    e.currentTarget.src = '/logo.jpg';
+                  } else if (e.currentTarget.src.includes('.jpg')) {
+                    e.currentTarget.src = '/logo.jpeg';
+                  } else {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }
+                }}
+              />
+              <h1 className="hidden text-3xl md:text-4xl lg:text-5xl font-serif font-black gold-gradient tracking-[0.1em] uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
+                {companyConfig?.logoText || 'DEVI JEWELLERS'}
+              </h1>
+            </>
+          )}
           <div className="hidden flex items-center justify-center gap-3 px-6 py-3 bg-[#D4AF37]/10 rounded-full border border-[#D4AF37]/40 shadow-[0_0_15px_rgba(212,175,55,0.2)]">
             <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-[#D4AF37] light-sparkle" />
             <h1 className="text-xl md:text-2xl font-serif font-black tracking-[0.25em] gold-gradient uppercase whitespace-nowrap">
@@ -559,7 +572,7 @@ export default function TVDisplay({
                                 <span className="text-[20px] md:text-[25px] text-[#FFD700] font-sans mb-1 uppercase font-black tracking-[0.2em] border-b border-[#FFD700]/30 pb-1">SALE RATE</span>
                                 <span 
                                   className="text-2xl md:text-3xl lg:text-4xl font-serif font-black tracking-tight leading-none gold-gradient"
-                                  style={{ fontSize: goldFontSize ? `${Math.max(20, goldFontSize * 0.8)}px` : undefined }}
+                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
                                 >
                                   {formatPrice(item.value, false)}
                                 </span>
@@ -569,7 +582,7 @@ export default function TVDisplay({
                                 <span className="text-[20px] md:text-[25px] text-[#E2E8F0] font-sans mb-1 uppercase font-black tracking-[0.2em] border-b border-zinc-400/30 pb-1">PURCHASE RATE</span>
                                 <span 
                                   className="text-2xl md:text-3xl lg:text-4xl font-serif font-black tracking-tight leading-none text-zinc-300"
-                                  style={{ fontSize: goldFontSize ? `${Math.max(20, goldFontSize * 0.8)}px` : undefined }}
+                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
                                 >
                                   {formatPrice(item.purchaseValue || (item.value - 200), false)}
                                 </span>
@@ -650,7 +663,7 @@ export default function TVDisplay({
                                       ? 'text-zinc-100' 
                                       : 'text-[#E5E4E2]'
                                   }`}
-                                  style={{ fontSize: silverFontSize ? `${Math.max(20, silverFontSize * 0.8)}px` : undefined }}
+                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
                                 >
                                   {formatPrice(item.value, isSilver)}
                                 </span>
@@ -660,7 +673,7 @@ export default function TVDisplay({
                                 <span className="text-[20px] md:text-[25px] text-[#E2E8F0] font-sans mb-1 uppercase font-black tracking-[0.2em] border-b border-zinc-400/30 pb-1">PURCHASE RATE</span>
                                 <span 
                                   className="text-2xl md:text-3xl lg:text-4xl font-serif font-black tracking-tight leading-none text-zinc-400"
-                                  style={{ fontSize: silverFontSize ? `${Math.max(20, silverFontSize * 0.8)}px` : undefined }}
+                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
                                 >
                                   {formatPrice(item.purchaseValue || (item.value - 2), isSilver)}
                                 </span>

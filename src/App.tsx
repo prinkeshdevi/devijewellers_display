@@ -100,33 +100,45 @@ export default function App() {
   const [history, setHistory] = useState<RateHistoryEntry[]>(INITIAL_HISTORY);
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
 
-  // 1. Load initial states from localStorage if they exist, or seed them
+  // 1. Load initial states from backend SQL database, fallback to localStorage if they exist, or seed them
   useEffect(() => {
-    const getStored = <T,>(key: string, backup: T): T => {
+    const loadStateFromApi = async (key: string, setter: (val: any) => void, backup: any) => {
+      try {
+        const res = await fetch(`/api/state/${key}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.data) {
+            setter(json.data.payload !== undefined ? json.data.payload : json.data);
+            return;
+          }
+        }
+      } catch (err) {}
+      
       try {
         const item = localStorage.getItem(`asm_${key}`);
-        return item ? JSON.parse(item) : backup;
-      } catch (err) {
-        return backup;
+        if (item) setter(JSON.parse(item));
+        else setter(backup);
+      } catch (e) {
+        setter(backup);
       }
     };
 
-    setRates(getStored('rates', INITIAL_RATES));
-    setTrends(getStored('trends', INITIAL_TRENDS));
-    setDisplaySetting(getStored('displaySetting', INITIAL_DISPLAY_SETTING));
-    setBranches(getStored('branches', INITIAL_BRANCHES));
-    setMedia(getStored('media', INITIAL_MEDIA));
-    setPromos(getStored('promos', INITIAL_PROMOS));
-    setSaleStatuses(getStored('saleStatuses', INITIAL_SALE_STATUS));
-    setDisplays(getStored('displays', INITIAL_DISPLAYS));
-    setLogs(getStored('logs', INITIAL_LOGS));
-    setUsers(getStored('users', INITIAL_USERS));
-    setSystemConfig(getStored('systemConfig', {
+    loadStateFromApi('rates', setRates, INITIAL_RATES);
+    loadStateFromApi('trends', setTrends, INITIAL_TRENDS);
+    loadStateFromApi('displaySetting', setDisplaySetting, INITIAL_DISPLAY_SETTING);
+    loadStateFromApi('branches', setBranches, INITIAL_BRANCHES);
+    loadStateFromApi('media', setMedia, INITIAL_MEDIA);
+    loadStateFromApi('promos', setPromos, INITIAL_PROMOS);
+    loadStateFromApi('saleStatuses', setSaleStatuses, INITIAL_SALE_STATUS);
+    loadStateFromApi('displays', setDisplays, INITIAL_DISPLAYS);
+    loadStateFromApi('logs', setLogs, INITIAL_LOGS);
+    loadStateFromApi('users', setUsers, INITIAL_USERS);
+    loadStateFromApi('systemConfig', setSystemConfig, {
       ...INITIAL_SYSTEM_CONFIG,
       companyName: 'Devi Jewellers',
       logoText: 'DEVI JEWELLERS',
-    }));
-    setHistory(getStored('history', INITIAL_HISTORY));
+    });
+    loadStateFromApi('history', setHistory, INITIAL_HISTORY);
     const savedSync = localStorage.getItem('asm_lastSyncTime');
     if (savedSync) setLastSyncTime(JSON.parse(savedSync));
   }, []);
@@ -200,7 +212,7 @@ export default function App() {
     };
   }, []);
 
-  // Listen to Firestore for real-time rates from other clients (disable, handled by websockets now)
+  // Listen to fallback polling for rates based on dynamic interval
   useEffect(() => {
     const fetchCurrentRates = () => {
       fetch('/api/rates/current')
@@ -235,9 +247,14 @@ export default function App() {
         .catch(console.error);
     };
 
-    // Add 15 second fallback polling (Useful if running as Vercel Serverless Function without Socket.io support)
-    const fallbackPoll = setInterval(fetchCurrentRates, 15000);
+    const intervalMs = (displaySetting?.refreshInterval || 15) * 1000;
+    const fallbackPoll = setInterval(fetchCurrentRates, intervalMs);
 
+    return () => clearInterval(fallbackPoll);
+  }, [displaySetting?.refreshInterval]);
+
+  // Listen to Firestore for history
+  useEffect(() => {
     const unsubscribeHistory = onSnapshot(doc(db, "system", "history"), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -249,7 +266,6 @@ export default function App() {
     });
 
     return () => {
-      clearInterval(fallbackPoll);
       unsubscribeHistory();
     };
   }, []);
@@ -257,6 +273,13 @@ export default function App() {
   // Sync to database triggers (localstorage helper)
   const saveToStorage = (key: string, data: any) => {
     localStorage.setItem(`asm_${key}`, JSON.stringify(data));
+    
+    // Also save to database endpoint
+    fetch(`/api/state/${key}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ payload: data })
+    }).catch(err => console.error("API sync error:", err));
   };
 
 
@@ -477,6 +500,7 @@ export default function App() {
             rates={rates}
             saleStatuses={saleStatuses}
             branches={branches}
+            systemConfig={systemConfig}
             onUpdateSaleStatuses={handleUpdateSaleStatuses}
             onTriggerLog={triggerLogRecord}
           />
@@ -523,6 +547,8 @@ export default function App() {
       case 'settings':
         return (
           <SettingsComponent 
+            displaySetting={displaySetting}
+            onUpdateDisplaySetting={handleUpdateDisplaySetting}
             systemConfig={systemConfig}
             onUpdateSystemConfig={handleUpdateSystemConfig}
             onTriggerLog={triggerLogRecord}

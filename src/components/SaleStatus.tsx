@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { SaleStatusItem, Branch, JewelleryRates } from '../types';
+import { SaleStatusItem, Branch, JewelleryRates, SystemConfig } from '../types';
 import { 
   CheckCircle, 
   PlusCircle, 
@@ -32,6 +32,7 @@ interface SaleStatusProps {
   rates: JewelleryRates;
   saleStatuses: SaleStatusItem[];
   branches: Branch[];
+  systemConfig: SystemConfig;
   onUpdateSaleStatuses: (newStatuses: SaleStatusItem[]) => void;
   onTriggerLog: (action: string, details: string) => void;
 }
@@ -40,6 +41,7 @@ export default function SaleStatus({
   rates,
   saleStatuses,
   branches,
+  systemConfig,
   onUpdateSaleStatuses,
   onTriggerLog
 }: SaleStatusProps) {
@@ -218,7 +220,7 @@ export default function SaleStatus({
 
     // 4. Logo element
     const logoImg = new Image();
-    logoImg.src = '/logo.png';
+    logoImg.src = systemConfig.logoImageBase64 ? systemConfig.logoImageBase64 : '/logo.png';
     logoImg.crossOrigin = 'anonymous';
 
     await new Promise((resolve) => {
@@ -230,6 +232,14 @@ export default function SaleStatus({
       const targetHeight = 160;
       const targetWidth = logoImg.width * (targetHeight / logoImg.height);
       ctx.drawImage(logoImg, 600 - targetWidth / 2, 160, targetWidth, targetHeight);
+    } else if (!logoImg.complete || !logoImg.naturalWidth) {
+      if (systemConfig.logoText) {
+          ctx.fillStyle = accentColor;
+          ctx.font = "bold 56px 'Poppins', sans-serif";
+          ctx.textAlign = 'center';
+          ctx.letterSpacing = "4px";
+          ctx.fillText(systemConfig.logoText, 600, 240);
+      }
     }
 
     // 5. Time and Address Block

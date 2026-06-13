@@ -129,6 +129,7 @@ export interface UserAccount {
 export interface SystemConfig {
   companyName: string;
   logoText: string;
+  logoImageBase64?: string;
   contactNumber: string;
   tickerSpeed: number;
   rateApiUrl: string;
