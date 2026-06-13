@@ -19,8 +19,8 @@ interface SignageApi {
     suspend fun updateDisplaySettings(@Body request: SyncRequest<DisplaySetting>): Response<Void>
 
     companion object {
-        // REPLACE WITH ACTUAL CLOUD RUN BACKEND URL OR LOCAL IP
-        private const val BASE_URL = "https://your-api-endpoint.com"
+        // Configured to connect to your live Vercel web application backend
+        private const val BASE_URL = "https://devijewellers-display.vercel.app"
 
         fun create(): SignageApi {
             return Retrofit.Builder()
