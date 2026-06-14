@@ -1,5 +1,5 @@
 import express from "express";
-import { syncRates, latestRatesInMemory } from "./syncService.js";
+import { syncRates, latestRatesInMemory, lastSyncAttemptAt } from "./syncService.js";
 import { sql } from 'drizzle-orm';
 import { db } from "./db/index.js";
 import { rates, syncLogs, calculationSettings, globalState } from "./db/schema.js";
@@ -18,11 +18,12 @@ apiRouter.get("/rates/current", async (req, res) => {
     // If database rates storage is disabled and we have rates in memory, return memory rates
     if (!isStoreEnabled && latestRatesInMemory) {
       // Lazy sync check (only if auto-sync is enabled)
-      const lastUpdate = latestRatesInMemory.updatedAt?.getTime() || 0;
+      const lastUpdate = latestRatesInMemory.updatedAt?.getTime() || Date.now();
       const minutes = currentSettings?.syncIntervalMinutes || 1;
       const isAutoSyncEnabled = !currentSettings || currentSettings.enableAutoSync !== false;
+      const lastAttempt = Math.max(lastUpdate, lastSyncAttemptAt);
 
-      if (isAutoSyncEnabled && (Date.now() - lastUpdate > minutes * 60000)) {
+      if (isAutoSyncEnabled && (Date.now() - lastAttempt > minutes * 60000)) {
         syncRates().catch(e => console.error("Lazy in-memory sync failed in background:", e));
       }
       return res.json(latestRatesInMemory);
@@ -35,11 +36,12 @@ apiRouter.get("/rates/current", async (req, res) => {
     
     // Lazy sync check (only if enabled)
     if (current[0]) {
-      const lastUpdate = current[0].updatedAt?.getTime() || 0;
+      const lastUpdate = current[0].updatedAt?.getTime() || Date.now();
       const minutes = currentSettings?.syncIntervalMinutes || 1;
       const isAutoSyncEnabled = !currentSettings || currentSettings.enableAutoSync !== false;
+      const lastAttempt = Math.max(lastUpdate, lastSyncAttemptAt);
       
-      if (isAutoSyncEnabled && (Date.now() - lastUpdate > minutes * 60000)) {
+      if (isAutoSyncEnabled && (Date.now() - lastAttempt > minutes * 60000)) {
         // Fire sync in background, don't await, so it doesn't block clients loading immediately
         syncRates().catch(e => console.error("Lazy sync failed in background:", e));
       }

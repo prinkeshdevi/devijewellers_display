@@ -8,12 +8,14 @@ let syncTimer: NodeJS.Timeout | null = null;
 let broadcastCallback: ((data: any) => void) | null = null;
 
 export let latestRatesInMemory: any = null;
+export let lastSyncAttemptAt: number = 0;
 
 export const setBroadcastCallback = (cb: (data: any) => void) => {
   broadcastCallback = cb;
 };
 
 export const syncRates = async () => {
+  lastSyncAttemptAt = Date.now();
   try {
     let settingsResult;
     try {
@@ -35,6 +37,11 @@ export const syncRates = async () => {
     let response;
     try {
       response = await fetch(API_URL, { signal: controller.signal });
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        throw new Error("Master API timed out after 10 seconds.");
+      }
+      throw new Error("Master API unreachable: " + (err.message || String(err)));
     } finally {
       clearTimeout(timeoutId);
     }

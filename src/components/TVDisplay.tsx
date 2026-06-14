@@ -425,8 +425,8 @@ export default function TVDisplay({
       <div id="tv-header" className="flex flex-col sm:flex-row justify-between items-center border-b border-[#D4AF37]/30 pb-1 mb-1 relative z-10 gap-2 shrink-0">
         
         {/* Dynamic Display Mode Badges (Non-obtrusive but informative branding) */}
-        <div className="hidden lg:flex flex-1 justify-start">
-          <div className="flex items-center gap-2 px-3 py-1 bg-black/40 rounded-full border border-[#D4AF37]/15 text-[10px] tracking-widest text-[#D4AF37] font-mono uppercase">
+        <div className="flex flex-1 justify-start">
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-black/40 rounded-full border border-[#D4AF37]/15 text-[10px] tracking-widest text-[#D4AF37] font-mono uppercase">
             <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-ping"></span>
             <span>{mode} view</span>
             <span className="text-zinc-500">|</span>
@@ -443,33 +443,19 @@ export default function TVDisplay({
               className="h-16 md:h-20 lg:h-24 max-w-[400px] object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] bg-black/40 p-2 rounded"
             />
           ) : (
-            <>
-              <img 
-                src="/logo.png" 
-                alt="Devi Jewellers Logo" 
-                className="h-16 md:h-20 lg:h-24 max-w-[400px] object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]"
-                onError={(e) => {
-                  if (e.currentTarget.src.includes('.png')) {
-                    e.currentTarget.src = '/logo.jpg';
-                  } else if (e.currentTarget.src.includes('.jpg')) {
-                    e.currentTarget.src = '/logo.jpeg';
-                  } else {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                  }
-                }}
-              />
-              <h1 className="hidden text-3xl md:text-4xl lg:text-5xl font-serif font-black gold-gradient tracking-[0.1em] uppercase drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)]">
-                {companyConfig?.logoText || 'DEVI JEWELLERS'}
-              </h1>
-            </>
+            <img 
+              src="/logo.png" 
+              alt="Devi Jewellers Logo" 
+              className="h-16 md:h-20 lg:h-24 max-w-[400px] object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] flex-shrink-0"
+              onError={(e) => {
+                if (e.currentTarget.src.includes('.png')) {
+                  e.currentTarget.src = '/logo.jpg';
+                } else if (e.currentTarget.src.includes('.jpg')) {
+                  e.currentTarget.src = '/logo.jpeg';
+                }
+              }}
+            />
           )}
-          <div className="hidden flex items-center justify-center gap-3 px-6 py-3 bg-[#D4AF37]/10 rounded-full border border-[#D4AF37]/40 shadow-[0_0_15px_rgba(212,175,55,0.2)]">
-            <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-[#D4AF37] light-sparkle" />
-            <h1 className="text-xl md:text-2xl font-serif font-black tracking-[0.25em] gold-gradient uppercase whitespace-nowrap">
-              {companyConfig?.companyName || 'DEVI JEWELLERS'}
-            </h1>
-          </div>
         </div>
 
         <div className="flex flex-1 items-center justify-end gap-4 text-right">

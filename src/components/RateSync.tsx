@@ -118,14 +118,17 @@ export default function RateSync({
     
     try {
       const res = await fetch('/api/rates/sync', { method: 'POST' });
-      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP error ${res.status}`);
+      }
       
       onTriggerLog('Live API Sync', `Forced sync from master API successfully.`);
       triggerSuccess('Live API Data Fetched and Updated Successfully.');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Fetch failed', err);
-      onTriggerLog('Live API Sync Error', 'Failed to fetch rates from API');
-      triggerError('Failed to fetch API: Network issue. Please try again.');
+      onTriggerLog('Live API Sync Error', `Failed to fetch rates from API: ${err.message}`);
+      triggerError(`Failed to fetch API: ${err.message}`);
     }
     setLoadingApi(false);
   };
