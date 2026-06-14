@@ -67,6 +67,10 @@ export default function SaleStatus({
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
   const [sharePlatform, setSharePlatform] = useState<'whatsapp' | 'instagram'>('whatsapp');
   const [copiedText, setCopiedText] = useState<boolean>(false);
+  const [whatsappMessage, setWhatsappMessage] = useState<string>(() => {
+    const defaultMsg = `👑 *{header}* 👑\n📍 _{branch}_\n📅 {date}\n━━━━━━━━━━━━━━━━━━━━\n✨ *24K Gold:* ₹{24k}/10g\n🏆 *22K Gold:* ₹{22k}/10g\n⭐ *18K Gold:* ₹{18k}/10g\n🥈 *Silver:* ₹{silver}/1Kg\n━━━━━━━━━━━━━━━━━━━━\n📞 Contact: {contact}`;
+    return localStorage.getItem('whatsappMessage') || defaultMsg;
+  });
 
   // --- TAB 2: CAMPAIGN STATUS DESK FIELDS ---
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
@@ -110,15 +114,20 @@ export default function SaleStatus({
 
   // Generate Social Sharing Text
   const getShareableText = () => {
-    const divider = '━━━━━━━━━━━━━━━━━━━━';
+    let text = whatsappMessage;
     const timeStr = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
-    let text = `👑 *${headerTitle}* 👑\n📍 _${activeBranchName.toUpperCase()}_\n📅 ${timeStr}\n${divider}\n`;
-    if (show24k) text += `✨ *24K Gold:* ₹${rates.gold24k}/10g\n`;
-    if (show22k) text += `🏆 *22K Gold:* ₹${rates.gold22k}/10g\n`;
-    if (show18k) text += `💎 *18K Gold:* ₹${rates.gold18k}/10g\n`;
-    if (showSilver) text += `🪙 *Silver:* ₹${rates.silver}/kg\n`;
-    if (showPlatinum) text += `💍 *Platinum pt950:* ₹${rates.platinum}/10g\n`;
-    text += `${divider}\n💬 _${greetingText}_\n📞 Contact: ${activeBranchContact}\n🏛️ ${customRatesNote}`;
+    
+    text = text.replace(/{branch}/g, activeBranchName);
+    text = text.replace(/{date}/g, timeStr);
+    text = text.replace(/{header}/g, headerTitle);
+    
+    // Add rate variables
+    text = text.replace(/{24k}/g, rates.gold24k ? rates.gold24k.toString() : '');
+    text = text.replace(/{22k}/g, rates.gold22k ? rates.gold22k.toString() : '');
+    text = text.replace(/{18k}/g, rates.gold18k ? rates.gold18k.toString() : '');
+    text = text.replace(/{silver}/g, rates.silver ? rates.silver.toString() : '');
+    text = text.replace(/{contact}/g, activeBranchContact);
+
     return text;
   };
 
@@ -279,56 +288,57 @@ export default function SaleStatus({
     if (showSilver) displayItems.push({ label: 'SILVER RATE', sub: '1 kg', val: formatINR(rates.silver) });
     if (showPlatinum) displayItems.push({ label: 'PLATINUM PT950', sub: '10gm', val: formatINR(rates.platinum) });
 
-    let currentY = 600;
+    let currentY = 590;
     displayItems.forEach((item, index) => {
       // Row divider
       if (index > 0) {
         ctx.strokeStyle = `${accentColor}20`;
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(150, currentY - 20);
-        ctx.lineTo(1050, currentY - 20);
+        ctx.moveTo(140, currentY - 25);
+        ctx.lineTo(1060, currentY - 25);
         ctx.stroke();
       }
 
       // Label & Sub labels
       ctx.fillStyle = textColor;
-      ctx.font = "bold 40px 'Playfair Display', Serif";
+      ctx.font = "bold 56px 'Playfair Display', Serif";
       ctx.textAlign = 'left';
-      ctx.fillText(item.label, 170, currentY + 10);
+      ctx.fillText(item.label, 150, currentY + 20);
 
       ctx.fillStyle = mutedTextColor;
-      ctx.font = "24px 'Poppins', Sans-serif";
-      ctx.fillText(item.sub, 170, currentY + 44);
+      ctx.font = "28px 'Poppins', Sans-serif";
+      ctx.fillText(item.sub, 150, currentY + 65);
 
       // Value column
       const valGrad = ctx.createLinearGradient(800, 0, 1050, 0);
       valGrad.addColorStop(0, '#FFFFFF');
       valGrad.addColorStop(1, accentColor);
       ctx.fillStyle = valGrad;
-      ctx.font = "900 46px 'JetBrains Mono', Monospace";
+      ctx.font = "900 64px 'JetBrains Mono', Monospace";
       ctx.textAlign = 'right';
-      ctx.fillText(item.val, 1030, currentY + 22);
+      ctx.fillText(item.val, 1050, currentY + 36);
 
-      currentY += 92;
+      currentY += 105;
     });
 
     // 10. Footer info
+    const footerY = Math.max(1020, currentY + 10);
     ctx.strokeStyle = `${accentColor}40`;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(150, 1020);
-    ctx.lineTo(1050, 1020);
+    ctx.moveTo(150, footerY);
+    ctx.lineTo(1050, footerY);
     ctx.stroke();
 
     ctx.fillStyle = accentColor;
     ctx.font = "16px 'Poppins', Sans-Serif";
     ctx.textAlign = 'center';
-    ctx.fillText(`Contact: ${activeBranchContact}`, 600, 1060);
+    ctx.fillText(`Contact: ${activeBranchContact}`, 600, footerY + 40);
 
     ctx.fillStyle = mutedTextColor;
     ctx.font = "italic 15px 'Poppins', Sans-Serif";
-    ctx.fillText(customRatesNote, 600, 1095);
+    ctx.fillText(customRatesNote, 600, footerY + 75);
 
     return canvas;
   }
@@ -359,9 +369,13 @@ export default function SaleStatus({
       if (!blob) return;
       const file = new File([blob], `Devijewellers_Rates_${activeTheme}_${activeBranchName.replace(/\s+/g, '_')}.png`, { type: 'image/png' });
       
+      const interpolatedMessage = whatsappMessage
+        .replace(/{branch}/g, activeBranchName)
+        .replace(/{date}/g, new Date().toDateString());
+
       const shareData = {
         title: 'Today\'s Premium Rates',
-        text: `Devijewellers - ${activeBranchName}\nLive rates for ${new Date().toDateString()}`,
+        text: interpolatedMessage,
         files: [file]
       };
 
@@ -706,6 +720,22 @@ export default function SaleStatus({
                 />
               </div>
 
+              <div className="flex flex-col gap-1 mt-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-mono uppercase tracking-widest text-[#25D366]">WhatsApp Share Message</label>
+                  <span className="text-[9px] text-zinc-500 font-mono italic">Variables: {'{branch}'}, {'{date}'}, {'{24k}'}, {'{22k}'}, {'{18k}'}, {'{silver}'}</span>
+                </div>
+                <textarea
+                  value={whatsappMessage}
+                  onChange={(e) => {
+                    setWhatsappMessage(e.target.value);
+                    localStorage.setItem('whatsappMessage', e.target.value);
+                  }}
+                  className="bg-[#0B0B0D] border border-zinc-800 text-[10px] p-2 rounded text-zinc-400 focus:outline-none min-h-[60px] resize-none"
+                  placeholder="Type your custom share text here..."
+                />
+              </div>
+
             </div>
 
             {/* ACTION TRIGGERS DRAWER */}
@@ -800,10 +830,10 @@ export default function SaleStatus({
                     {show24k && (
                       <div className="flex justify-between items-center pb-1.5 border-b border-zinc-800/40 text-xs">
                         <div>
-                          <p className="font-serif font-black text-white text-[20px] tracking-wider flex items-center gap-1">24K Gold Rate <Sparkles className="w-3 h-3 text-[#D4AF37]" /></p>
-                          <p className="text-[14px] text-[#D4AF37] font-semibold uppercase font-mono mt-0.5">10gm</p>
+                          <p className="font-serif font-black text-white text-[28px] tracking-wider flex items-center gap-1">24K Gold Rate <Sparkles className="w-4 h-4 text-[#D4AF37]" /></p>
+                          <p className="text-[16px] text-[#D4AF37] font-semibold uppercase font-mono mt-0.5">10gm</p>
                         </div>
-                        <span className={`text-[20px] font-bold ${previewStyles.priceText}`}>
+                        <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
                           {formatINR(rates.gold24k)}
                         </span>
                       </div>
@@ -812,10 +842,10 @@ export default function SaleStatus({
                     {show22k && (
                       <div className="flex justify-between items-center pb-1.5 border-b border-zinc-800/40 text-xs">
                         <div>
-                          <p className="font-serif font-black text-white text-[20px] tracking-wider">22K Gold Rate</p>
-                          <p className="text-[14px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
+                          <p className="font-serif font-black text-white text-[28px] tracking-wider">22K Gold Rate</p>
+                          <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
                         </div>
-                        <span className={`text-[20px] font-bold ${previewStyles.priceText}`}>
+                        <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
                           {formatINR(rates.gold22k)}
                         </span>
                       </div>
@@ -824,10 +854,10 @@ export default function SaleStatus({
                     {show18k && (
                       <div className="flex justify-between items-center pb-1.5 border-b border-zinc-800/40 text-xs">
                         <div>
-                          <p className="font-serif font-black text-white text-[20px] tracking-wider">18K Gold Rate</p>
-                          <p className="text-[14px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
+                          <p className="font-serif font-black text-white text-[28px] tracking-wider">18K Gold Rate</p>
+                          <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
                         </div>
-                        <span className={`text-[20px] font-bold ${previewStyles.priceText}`}>
+                        <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
                           {formatINR(rates.gold18k)}
                         </span>
                       </div>
@@ -836,10 +866,10 @@ export default function SaleStatus({
                     {showSilver && (
                       <div className="flex justify-between items-center pb-1.5 border-b border-zinc-800/40 text-xs">
                         <div>
-                          <p className="font-serif font-black text-white text-[20px] tracking-wider">Silver</p>
-                          <p className="text-[14px] text-zinc-300 font-mono mt-0.5 uppercase">1 kg</p>
+                          <p className="font-serif font-black text-white text-[28px] tracking-wider">Silver</p>
+                          <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">1 kg</p>
                         </div>
-                        <span className={`text-[20px] font-bold ${previewStyles.priceText}`}>
+                        <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
                           {formatINR(rates.silver)}
                         </span>
                       </div>
@@ -848,10 +878,10 @@ export default function SaleStatus({
                     {showPlatinum && (
                       <div className="flex justify-between items-center pb-1.5 border-b border-zinc-800/40 text-xs">
                         <div>
-                          <p className="font-serif font-black text-white text-[20px] tracking-wider">Platinum Pt950</p>
-                          <p className="text-[14px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
+                          <p className="font-serif font-black text-white text-[28px] tracking-wider">Platinum Pt950</p>
+                          <p className="text-[16px] text-zinc-300 font-mono mt-0.5 uppercase">10gm</p>
                         </div>
-                        <span className={`text-[20px] font-bold ${previewStyles.priceText}`}>
+                        <span className={`text-[32px] font-bold ${previewStyles.priceText}`}>
                           {formatINR(rates.platinum)}
                         </span>
                       </div>

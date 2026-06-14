@@ -245,7 +245,9 @@ export default function App() {
           setRates(newRates);
         }
       })
-      .catch(console.error);
+      .catch((err) => {
+        if (err.message !== "Failed to fetch") console.error("Rate init error:", err);
+      });
 
     return () => {
       socket.disconnect();
@@ -290,7 +292,9 @@ export default function App() {
             });
           }
         })
-        .catch(console.error);
+        .catch((err) => {
+          if (err.message !== "Failed to fetch") console.error("Rate poll error:", err);
+        });
     };
 
     const intervalMs = (displaySetting?.refreshInterval || 15) * 1000;
