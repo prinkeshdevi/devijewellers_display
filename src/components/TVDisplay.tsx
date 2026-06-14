@@ -208,7 +208,7 @@ export default function TVDisplay({
 
   if (isBlackout) {
     return (
-      <div id="tv-blackout" className="w-full h-full min-h-[500px] bg-black flex items-center justify-center text-zinc-900 font-mono select-none">
+      <div id="tv-blackout" className="w-full h-full min-h-[500px] bg-black flex items-center justify-center text-zinc-900 font-poppins select-none">
         ❌ SYSTEM STANDBY / BLACKOUT
       </div>
     );
@@ -299,7 +299,7 @@ export default function TVDisplay({
   return (
     <div 
       id="tv-display-root"
-      className={`w-full text-[#F8F5EE] select-none h-screen flex flex-col justify-between font-sans transition-all duration-700 p-2 relative overflow-hidden ${isRotatingBgActive ? 'bg-black' : themeBg}`}
+      className={`w-full text-[#F8F5EE] select-none h-screen flex flex-col justify-between font-poppins transition-all duration-700 p-2 relative overflow-hidden ${isRotatingBgActive ? 'bg-black' : themeBg}`}
       style={{ 
         backgroundColor: isRotatingBgActive ? 'transparent' : (customPrimaryBg || undefined),
         borderColor: customGoldColor ? `${customGoldColor}30` : undefined
@@ -429,7 +429,7 @@ export default function TVDisplay({
         
         {/* Dynamic Display Mode Badges (Non-obtrusive but informative branding) */}
         <div className="flex flex-1 justify-start">
-          <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-black/40 rounded-full border border-[#D4AF37]/15 text-[10px] tracking-widest text-[#D4AF37] font-mono uppercase">
+          <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-black/40 rounded-full border border-[#D4AF37]/15 text-[10px] tracking-widest text-[#D4AF37] font-poppins uppercase">
             <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-ping"></span>
             <span>{mode} view</span>
             <span className="text-zinc-500">|</span>
@@ -466,17 +466,17 @@ export default function TVDisplay({
             {showDate && (
               <>
                 <div className="text-left">
-                  <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Showroom Date</p>
+                  <p className="text-[10px] font-poppins tracking-widest text-zinc-500 uppercase">Showroom Date</p>
                   <p className="text-xs font-semibold text-[#F1ECE4]">{date || '9 Jun 2026'}</p>
                 </div>
                 <span className="w-px h-6 bg-zinc-800"></span>
               </>
             )}
             <div>
-              <p className="text-[10px] font-mono tracking-widest text-[#D4AF37] uppercase flex items-center gap-1">
+              <p className="text-[10px] font-poppins tracking-widest text-[#D4AF37] uppercase flex items-center gap-1">
                 <Clock className="w-3 h-3 animate-spin-slow text-[#D4AF37]" /> Live Time
               </p>
-              <p className="text-sm font-mono font-bold text-[#F8F5EE] tracking-wider">{time || '04:00:00 PM'}</p>
+              <p className="text-sm font-poppins font-bold text-[#F8F5EE] tracking-wider">{time || '04:00:00 PM'}</p>
             </div>
           </div>
         </div>
@@ -488,7 +488,7 @@ export default function TVDisplay({
           <span className="bg-[#D4AF37] text-black font-extrabold text-[10px] px-2 py-0.5 rounded tracking-widest uppercase">
             ANNOUNCEMENT
           </span>
-          <p className="text-xs md:text-sm text-[#F8F5EE] font-serif tracking-wide italic">
+          <p className="text-xs md:text-sm text-[#F8F5EE] font-poppins tracking-wide italic">
             "{announcementText}"
           </p>
         </div>
@@ -504,7 +504,7 @@ export default function TVDisplay({
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 px-1 mb-1">
                   <span className="h-0.5 w-8 bg-[#D4AF37]"></span>
-                  <span className="text-[25px] font-mono tracking-widest text-[#D4AF37] uppercase font-bold">Gold Rates <span className="text-[25px] normal-case opacity-80 font-semibold">Per 10Gms</span></span>
+                  <span className="text-[25px] font-poppins tracking-widest text-[#D4AF37] uppercase font-bold">Gold Rates <span className="text-[25px] normal-case opacity-80 font-semibold">Per 10Gms</span></span>
                 </div>
                 <div 
                   id="tv-gold-rate-grid" 
@@ -552,7 +552,7 @@ export default function TVDisplay({
 
                             <div className="mb-0 mt-1">
                               <h3 
-                                className="font-mono font-bold uppercase tracking-widest text-[#D4AF37]"
+                                className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37]"
                                 style={{ fontSize: labelFontSize ? `${labelFontSize}px` : '12px' }}
                               >
                                 {item.label}
@@ -562,9 +562,9 @@ export default function TVDisplay({
                             {/* HUGE Rate Typography */}
                             <div className="my-0.5 flex justify-center items-stretch w-full gap-4 sm:gap-6 lg:gap-8 min-h-0 shrink">
                               <div className="flex flex-col items-center justify-center">
-                                <span className="text-[20px] md:text-[25px] text-[#FFD700] font-sans mb-1 uppercase font-black tracking-[0.2em] border-b border-[#FFD700]/30 pb-1">SALE RATE</span>
+                                <span className="text-[20px] md:text-[25px] text-[#FFD700] font-poppins mb-1 uppercase font-black tracking-[0.2em] border-b border-[#FFD700]/30 pb-1">SALE RATE</span>
                                 <span 
-                                  className="text-2xl md:text-3xl lg:text-4xl font-serif font-black tracking-tight leading-none gold-gradient"
+                                  className="text-2xl md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none gold-gradient"
                                   style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
                                 >
                                   {formatPrice(item.value, false)}
@@ -572,9 +572,9 @@ export default function TVDisplay({
                               </div>
                               <div className="w-[3px] rounded-full bg-[#000000]"></div>
                               <div className="flex flex-col items-center justify-center">
-                                <span className="text-[20px] md:text-[25px] text-[#E2E8F0] font-sans mb-1 uppercase font-black tracking-[0.2em] border-b border-zinc-400/30 pb-1">PURCHASE RATE</span>
+                                <span className="text-[20px] md:text-[25px] text-[#E2E8F0] font-poppins mb-1 uppercase font-black tracking-[0.2em] border-b border-zinc-400/30 pb-1">PURCHASE RATE</span>
                                 <span 
-                                  className="text-2xl md:text-3xl lg:text-4xl font-serif font-black tracking-tight leading-none text-zinc-300"
+                                  className="text-2xl md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none text-zinc-300"
                                   style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
                                 >
                                   {formatPrice(item.purchaseValue || (item.value - 200), false)}
@@ -597,7 +597,7 @@ export default function TVDisplay({
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 px-1 mb-1">
                   <span className="h-0.5 w-8 bg-zinc-400"></span>
-                  <span className="text-[25px] font-mono tracking-widest text-zinc-400 uppercase font-bold">Silver & Other Metals <span className="text-[25px] normal-case opacity-80 font-semibold">Per 1Kg</span></span>
+                  <span className="text-[25px] font-poppins tracking-widest text-zinc-400 uppercase font-bold">Silver & Other Metals <span className="text-[25px] normal-case opacity-80 font-semibold">Per 1Kg</span></span>
                 </div>
                 <div 
                   id="tv-silver-rate-grid" 
@@ -639,7 +639,7 @@ export default function TVDisplay({
 
                             <div className="mb-0 mt-1">
                               <h3 
-                                className={`font-mono font-bold uppercase tracking-widest ${item.key === 'silver' ? 'text-zinc-300' : 'text-[#E5E4E2]'}`}
+                                className={`font-poppins font-bold uppercase tracking-widest ${item.key === 'silver' ? 'text-zinc-300' : 'text-[#E5E4E2]'}`}
                                 style={{ fontSize: labelFontSize ? `${labelFontSize}px` : '12px' }}
                               >
                                 {item.label}
@@ -649,9 +649,9 @@ export default function TVDisplay({
                             {/* HUGE Rate Typography */}
                             <div className="my-0.5 flex justify-center items-stretch w-full gap-4 sm:gap-6 lg:gap-8 min-h-0 shrink">
                               <div className="flex flex-col items-center justify-center">
-                                <span className="text-[20px] md:text-[25px] text-[#E5E4E2] font-sans mb-1 uppercase font-black tracking-[0.2em] border-b border-[#E5E4E2]/30 pb-1">SALE RATE</span>
+                                <span className="text-[20px] md:text-[25px] text-[#E5E4E2] font-poppins mb-1 uppercase font-black tracking-[0.2em] border-b border-[#E5E4E2]/30 pb-1">SALE RATE</span>
                                 <span 
-                                  className={`text-2xl md:text-3xl lg:text-4xl font-serif font-black tracking-tight leading-none ${
+                                  className={`text-2xl md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none ${
                                     item.key === 'silver' 
                                       ? 'text-zinc-100' 
                                       : 'text-[#E5E4E2]'
@@ -663,9 +663,9 @@ export default function TVDisplay({
                               </div>
                               <div className="w-[3px] rounded-full bg-[#000000]"></div>
                               <div className="flex flex-col items-center justify-center">
-                                <span className="text-[20px] md:text-[25px] text-[#E2E8F0] font-sans mb-1 uppercase font-black tracking-[0.2em] border-b border-zinc-400/30 pb-1">PURCHASE RATE</span>
+                                <span className="text-[20px] md:text-[25px] text-[#E2E8F0] font-poppins mb-1 uppercase font-black tracking-[0.2em] border-b border-zinc-400/30 pb-1">PURCHASE RATE</span>
                                 <span 
-                                  className="text-2xl md:text-3xl lg:text-4xl font-serif font-black tracking-tight leading-none text-zinc-400"
+                                  className="text-2xl md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none text-zinc-400"
                                   style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
                                 >
                                   {formatPrice(item.purchaseValue || (item.value - 2), isSilver)}
@@ -694,7 +694,7 @@ export default function TVDisplay({
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-serif text-sm font-semibold text-[#F4D03F] tracking-wide">
+                    <span className="font-poppins text-sm font-semibold text-[#F4D03F] tracking-wide">
                       {activePromo.title}
                     </span>
                     <span className="text-[10px] bg-[#D4AF37] text-black font-extrabold px-1.5 py-0.5 rounded uppercase">
@@ -706,7 +706,7 @@ export default function TVDisplay({
                   </p>
                 </div>
               </div>
-              <div className="text-[10px] text-[#D4AF37] font-mono border border-[#D4AF37]/20 px-2.5 py-1 rounded bg-[#D4AF37]/5 flex items-center gap-1">
+              <div className="text-[10px] text-[#D4AF37] font-poppins border border-[#D4AF37]/20 px-2.5 py-1 rounded bg-[#D4AF37]/5 flex items-center gap-1">
                 <Calendar className="w-3 h-3 text-[#D4AF37]" /> valid till {new Date(activePromo.endDate).toLocaleDateString()}
               </div>
             </div>
@@ -749,10 +749,10 @@ export default function TVDisplay({
                 {/* Slideshow Luxury Bottom Titles and Meta */}
                 <div className="absolute bottom-8 left-8 right-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4 z-10 pointer-events-none">
                   <div className="max-w-2xl">
-                    <h2 className="text-2xl md:text-3xl font-serif font-black tracking-normal text-white uppercase leading-tight">
+                    <h2 className="text-2xl md:text-3xl font-poppins font-black tracking-normal text-white uppercase leading-tight">
                       {currentItem.title}
                     </h2>
-                    <p className="text-[11px] text-[#D4AF37] font-mono tracking-widest leading-relaxed mt-1 uppercase font-bold">
+                    <p className="text-[11px] text-[#D4AF37] font-poppins tracking-widest leading-relaxed mt-1 uppercase font-bold">
                       ✦ Certified Fine Jewelry Exhibition & Swarna Collections ✦
                     </p>
                   </div>
@@ -780,7 +780,7 @@ export default function TVDisplay({
 
 
       {/* FOOTER METADATA ZONE */}
-      <div id="tv-footer" className="mt-1 flex flex-col sm:flex-row justify-between items-center text-[9px] md:text-[10px] text-zinc-500 font-mono border-t border-[#D4AF37]/30 pt-1 gap-1">
+      <div id="tv-footer" className="mt-1 flex flex-col sm:flex-row justify-between items-center text-[9px] md:text-[10px] text-zinc-500 font-poppins border-t border-[#D4AF37]/30 pt-1 gap-1">
         <div className="flex items-center gap-3">
           <span>🛡️ Government Approved Hallmark</span>
           <span className="text-zinc-700">•</span>
