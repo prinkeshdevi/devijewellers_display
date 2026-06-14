@@ -1,28 +1,57 @@
 import express from "express";
-import { syncRates } from "./syncService.js";
+import { syncRates, latestRatesInMemory } from "./syncService.js";
 import { sql } from 'drizzle-orm';
 import { db } from "./db/index.js";
 import { rates, syncLogs, calculationSettings, globalState } from "./db/schema.js";
 
 export const apiRouter = express.Router();
 
-apiRouter.use(express.json());
+apiRouter.use(express.json({ limit: '50mb' }));
+apiRouter.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 apiRouter.get("/rates/current", async (req, res) => {
   try {
+    const settingsLog = await db.select().from(calculationSettings).limit(1).catch(() => [{ syncIntervalMinutes: 1, enableAutoSync: true, storeRatesInDb: true }]);
+    const currentSettings = settingsLog[0];
+    const isStoreEnabled = !currentSettings || currentSettings.storeRatesInDb !== false;
+
+    // If database rates storage is disabled and we have rates in memory, return memory rates
+    if (!isStoreEnabled && latestRatesInMemory) {
+      // Lazy sync check (only if auto-sync is enabled)
+      const lastUpdate = latestRatesInMemory.updatedAt?.getTime() || 0;
+      const minutes = currentSettings?.syncIntervalMinutes || 1;
+      const isAutoSyncEnabled = !currentSettings || currentSettings.enableAutoSync !== false;
+
+      if (isAutoSyncEnabled && (Date.now() - lastUpdate > minutes * 60000)) {
+        syncRates().catch(e => console.error("Lazy in-memory sync failed in background:", e));
+      }
+      return res.json(latestRatesInMemory);
+    }
+
     let current = await db.select().from(rates).limit(1).catch(async (e) => {
       console.warn("Retrying rate select due to error:", e);
       return await db.select().from(rates).limit(1); // retry once
     });
     
-    // Lazy sync check
+    // Lazy sync check (only if enabled)
     if (current[0]) {
       const lastUpdate = current[0].updatedAt?.getTime() || 0;
-      const settingsLog = await db.select().from(calculationSettings).limit(1).catch(() => [{ syncIntervalMinutes: 1 }]);
-      const minutes = settingsLog[0]?.syncIntervalMinutes || 1;
-      if (Date.now() - lastUpdate > minutes * 60000) {
+      const minutes = currentSettings?.syncIntervalMinutes || 1;
+      const isAutoSyncEnabled = !currentSettings || currentSettings.enableAutoSync !== false;
+      
+      if (isAutoSyncEnabled && (Date.now() - lastUpdate > minutes * 60000)) {
         // Fire sync in background, don't await, so it doesn't block clients loading immediately
         syncRates().catch(e => console.error("Lazy sync failed in background:", e));
+      }
+    } else if (!isStoreEnabled && !latestRatesInMemory) {
+      // If we don't have db record and storage is disabled, trigger initial sync
+      try {
+        await syncRates();
+        if (latestRatesInMemory) {
+          return res.json(latestRatesInMemory);
+        }
+      } catch (e) {
+        console.error("Initial trigger sync failed:", e);
       }
     }
     
@@ -164,7 +193,7 @@ apiRouter.get("/settings", async (req, res) => {
       console.warn("Retrying settings...");
       return await db.select().from(calculationSettings).limit(1);
     });
-    res.json(current[0] || { syncIntervalMinutes: 1, silverPurchaseOffset: 5000, platinumPurchaseOffset: 4000 });
+    res.json(current[0] || { syncIntervalMinutes: 1, silverPurchaseOffset: 5000, platinumPurchaseOffset: 4000, enableAutoSync: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

@@ -44,7 +44,9 @@ export default function RateSync({
   const [calcSettings, setCalcSettings] = useState({
     syncIntervalMinutes: 1,
     silverPurchaseOffset: 5000,
-    platinumPurchaseOffset: 4000
+    platinumPurchaseOffset: 4000,
+    enableAutoSync: true,
+    storeRatesInDb: true
   });
 
   // Load calculation settings from backend
@@ -59,7 +61,9 @@ export default function RateSync({
           setCalcSettings({
             syncIntervalMinutes: data.syncIntervalMinutes || 1,
             silverPurchaseOffset: data.silverPurchaseOffset || 5000,
-            platinumPurchaseOffset: data.platinumPurchaseOffset || 4000
+            platinumPurchaseOffset: data.platinumPurchaseOffset || 4000,
+            enableAutoSync: data.enableAutoSync !== false,
+            storeRatesInDb: data.storeRatesInDb !== false
           });
         }
       })
@@ -73,8 +77,10 @@ export default function RateSync({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(calcSettings)
       });
-      triggerSuccess('Calculation Settings Saved Successfully');
-      await syncMarketsApi(); // force a sync to apply
+      triggerSuccess('Calculation & Sync Settings Saved Successfully');
+      if (calcSettings.enableAutoSync) {
+        await syncMarketsApi(); // force a sync to apply
+      }
     } catch (e: any) {
       triggerError('Failed to save settings: ' + e.message);
     }
@@ -397,7 +403,22 @@ export default function RateSync({
             <div className="flex flex-col gap-4 bg-[#0B0B0D] p-5 rounded-lg border border-zinc-800">
               <label className="flex items-center justify-between cursor-pointer group">
                 <span className="text-[13px] font-mono text-zinc-300 uppercase tracking-wider group-hover:text-white transition-colors">Enable Auto Sync</span>
-                <input type="checkbox" defaultChecked className="w-4 h-4 accent-[#D4AF37] cursor-pointer" />
+                <input 
+                  type="checkbox" 
+                  checked={calcSettings.enableAutoSync} 
+                  onChange={(e) => setCalcSettings({...calcSettings, enableAutoSync: e.target.checked})}
+                  className="w-4 h-4 accent-[#D4AF37] cursor-pointer" 
+                />
+              </label>
+              <div className="w-full h-px bg-zinc-800/60"></div>
+              <label className="flex items-center justify-between cursor-pointer group">
+                <span className="text-[13px] font-mono text-zinc-300 uppercase tracking-wider group-hover:text-white transition-colors">Store Rates in Database</span>
+                <input 
+                  type="checkbox" 
+                  checked={calcSettings.storeRatesInDb} 
+                  onChange={(e) => setCalcSettings({...calcSettings, storeRatesInDb: e.target.checked})}
+                  className="w-4 h-4 accent-[#D4AF37] cursor-pointer" 
+                />
               </label>
               <div className="w-full h-px bg-zinc-800/60"></div>
               <label className="flex items-center justify-between cursor-pointer group">

@@ -52,6 +52,8 @@ export const calculationSettings = pgTable('calculation_settings', {
   syncIntervalMinutes: integer('sync_interval_minutes').notNull().default(1),
   silverPurchaseOffset: integer('silver_purchase_offset').notNull().default(5000),
   platinumPurchaseOffset: integer('platinum_purchase_offset').notNull().default(4000),
+  enableAutoSync: boolean('enable_auto_sync').notNull().default(true),
+  storeRatesInDb: boolean('store_rates_in_db').notNull().default(true),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 

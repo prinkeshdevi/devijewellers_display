@@ -1,4 +1,4 @@
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { db } from "./db/index.js";
 import { rates, rateHistoryLogs, syncLogs, calculationSettings } from "./db/schema.js";
 
@@ -6,6 +6,8 @@ const API_URL = "https://www.businessmantra.info/gold_rates/devi_gold_rate/api.p
 
 let syncTimer: NodeJS.Timeout | null = null;
 let broadcastCallback: ((data: any) => void) | null = null;
+
+export let latestRatesInMemory: any = null;
 
 export const setBroadcastCallback = (cb: (data: any) => void) => {
   broadcastCallback = cb;
@@ -77,28 +79,36 @@ export const syncRates = async () => {
       silverSale,
       silverPurchase,
       platinumSale,
-      platinumPurchase
+      platinumPurchase,
+      updatedAt: new Date()
     };
 
-    // Update current rates (always write to id 1)
-    await db.insert(rates)
-      .values({ id: 1, ...rateData })
-      .onConflictDoUpdate({
-        target: rates.id,
-        set: { ...rateData, updatedAt: new Date() }
+    // Save to in-memory state
+    latestRatesInMemory = rateData;
+
+    const isStoreEnabled = !settings || settings.storeRatesInDb !== false;
+
+    if (isStoreEnabled) {
+      // Update current rates (always write to id 1)
+      await db.insert(rates)
+        .values({ id: 1, ...rateData })
+        .onConflictDoUpdate({
+          target: rates.id,
+          set: { ...rateData, updatedAt: new Date() }
+        });
+
+      // History log
+      await db.insert(rateHistoryLogs).values({
+        sourceApiResponse: apiData,
+        ...rateData
       });
 
-    // History log
-    await db.insert(rateHistoryLogs).values({
-      sourceApiResponse: apiData,
-      ...rateData
-    });
-
-    // Sync log success
-    await db.insert(syncLogs).values({
-      status: "success",
-      apiResponse: apiData
-    });
+      // Sync log success
+      await db.insert(syncLogs).values({
+        status: "success",
+        apiResponse: apiData
+      });
+    }
 
     // Broadcast via websockets
     if (broadcastCallback) {
@@ -108,10 +118,21 @@ export const syncRates = async () => {
   } catch (error: any) {
     console.error("Rate Sync Error:", error);
     try {
-      await db.insert(syncLogs).values({
-        status: "error",
-        errorMessage: error.message || String(error)
-      });
+      // Find out if we can save to synclog (defaults to true if settings aren't loaded)
+      let storeSetting = true;
+      try {
+        const settingsResult = await db.select().from(calculationSettings).limit(1);
+        if (settingsResult[0] && settingsResult[0].storeRatesInDb === false) {
+          storeSetting = false;
+        }
+      } catch (e) {}
+
+      if (storeSetting) {
+        await db.insert(syncLogs).values({
+          status: "error",
+          errorMessage: error.message || String(error)
+        });
+      }
     } catch (logError) {
       console.error("Failed to write to syncLogs:", logError);
     }
@@ -123,9 +144,17 @@ export const syncRates = async () => {
 };
 
 export const startSyncService = async () => {
-  // Run once immediately on startup
+  // Run once immediately on startup if auto sync is enabled
   try {
-    await syncRates();
+    const settings = await db.select().from(calculationSettings).limit(1).catch(() => []);
+    const isAutoSyncEnabled = !settings[0] || settings[0].enableAutoSync !== false;
+    
+    if (isAutoSyncEnabled) {
+      console.log("Starting initial automatic rate sync...");
+      await syncRates();
+    } else {
+      console.log("Automatic rate synchronization is disabled by admin setting. Skipping initial sync.");
+    }
   } catch (e) {
     console.error("Initial syncRates failed:", e);
   }

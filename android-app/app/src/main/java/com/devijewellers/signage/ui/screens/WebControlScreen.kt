@@ -86,7 +86,7 @@ class WebAppInterface(private val context: Context) {
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
-fun WebControlScreen(url: String = "https://ais-pre-6cajhzszuqvnfvet72e2bx-711791395644.asia-southeast1.run.app") {
+fun WebControlScreen(url: String = "https://devijewellers-display.vercel.app/") {
     var webViewRef by remember { mutableStateOf<WebView?>(null) }
     var subPageCanGoBack by remember { mutableStateOf(false) }
 

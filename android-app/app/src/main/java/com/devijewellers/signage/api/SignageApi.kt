@@ -20,7 +20,7 @@ interface SignageApi {
 
     companion object {
         // Configured to connect to your live Vercel web application backend
-        private const val BASE_URL = "https://ais-pre-6cajhzszuqvnfvet72e2bx-711791395644.asia-southeast1.run.app/"
+        private const val BASE_URL = "https://devijewellers-display.vercel.app/"
 
         fun create(): SignageApi {
             return Retrofit.Builder()
