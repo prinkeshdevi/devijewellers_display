@@ -41,7 +41,7 @@ import AdminDashboard from './components/AdminDashboard';
 import TVDisplay from './components/TVDisplay';
 import MobileControl from './components/MobileControl';
 import MediaManager from './components/MediaManager';
-import PromoManager from './components/PromoManager';
+import BackgroundManager from './components/BackgroundManager';
 import SaleStatus from './components/SaleStatus';
 import RateSync from './components/RateSync';
 import DisplayManager from './components/DisplayManager';
@@ -55,6 +55,7 @@ import {
   Smartphone, 
   LayoutDashboard, 
   Video, 
+  Image,
   Gift, 
   Activity, 
   RefreshCw, 
@@ -106,10 +107,13 @@ export default function App() {
       try {
         const res = await fetch(`/api/state/${key}`);
         if (res.ok) {
-          const json = await res.json();
-          if (json.data) {
-            setter(json.data.payload !== undefined ? json.data.payload : json.data);
-            return;
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.indexOf("application/json") !== -1) {
+            const json = await res.json();
+            if (json.data) {
+              setter(json.data.payload !== undefined ? json.data.payload : json.data);
+              return;
+            }
           }
         }
       } catch (err) {}
@@ -212,9 +216,15 @@ export default function App() {
 
     // Also fetch initial from backend
     fetch('/api/rates/current')
-      .then(res => {
+      .then(async res => {
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-        return res.json();
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          return res.json();
+        } else {
+          const text = await res.text();
+          throw new Error("Invalid content-type from /api/rates/current. Output length: " + text.length);
+        }
       })
       .then(received => {
         if (received && received.gold24kSale) {
@@ -246,9 +256,15 @@ export default function App() {
   useEffect(() => {
     const fetchCurrentRates = () => {
       fetch('/api/rates/current')
-        .then(res => {
+        .then(async res => {
           if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-          return res.json();
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.indexOf("application/json") !== -1) {
+            return res.json();
+          } else {
+            const text = await res.text();
+            throw new Error("Invalid content-type from /api/rates/current. Output length: " + text.length);
+          }
         })
         .then(received => {
           if (received && received.gold24kSale) {
@@ -438,7 +454,7 @@ export default function App() {
     { id: 'mobile_control', label: 'Mobile Controller', icon: Smartphone },
     { id: 'rate_sync', label: 'Rate Sync Master', icon: RefreshCw },
     { id: 'media_manager', label: 'Media Signage Desk', icon: Video },
-    { id: 'promo_manager', label: 'Campaigns & Offers', icon: Gift },
+    { id: 'background_manager', label: 'Background Images', icon: Image },
     { id: 'sale_status', label: 'Seasonal Status Tags', icon: Activity },
     { id: 'branch_manager', label: 'Branch Management', icon: Building2 },
     { id: 'settings', label: 'Global Settings Desk', icon: SettingsIcon }
@@ -489,6 +505,7 @@ export default function App() {
               rotateBackgroundEnabled={displaySetting.rotateBackgroundEnabled}
               ratesDisplayDuration={displaySetting.ratesDisplayDuration}
               slideshowDisplayDuration={displaySetting.slideshowDisplayDuration}
+              showDate={displaySetting.showDate !== false}
             />
           </div>
         );
@@ -516,12 +533,14 @@ export default function App() {
             onUpdateDisplaySetting={handleUpdateDisplaySetting}
           />
         );
-      case 'promo_manager':
+      case 'background_manager':
         return (
-          <PromoManager 
-            promos={promos}
-            onUpdatePromos={handleUpdatePromos}
+          <BackgroundManager 
+            media={media}
+            onUpdateMedia={handleUpdateMedia}
             onTriggerLog={triggerLogRecord}
+            displaySetting={displaySetting}
+            onUpdateDisplaySetting={handleUpdateDisplaySetting}
           />
         );
       case 'sale_status':

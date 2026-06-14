@@ -94,7 +94,8 @@ export const INITIAL_DISPLAY_SETTING: DisplaySetting = {
   customCardBg: '#161619',
   customGoldColor: '#D4AF37',
   visibleRates: ['gold24k', 'gold22k', 'gold20k', 'gold18k', 'silver', 'platinum'],
-  mediaLoopEnabled: true
+  mediaLoopEnabled: true,
+  showDate: true
 };
 
 export const INITIAL_MEDIA: MediaItem[] = [

@@ -52,9 +52,14 @@ export default function RateSync({
   // Load calculation settings from backend
   useEffect(() => {
     fetch('/api/settings')
-      .then(res => {
+      .then(async res => {
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-        return res.json();
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          return res.json();
+        } else {
+          return {}; // Silently return empty object
+        }
       })
       .then(data => {
         if (data && !data.error) {
@@ -627,9 +632,14 @@ function SystemSyncLogs() {
 
   const fetchLogs = () => {
     fetch('/api/logs')
-      .then(res => {
+      .then(async res => {
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
-        return res.json();
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+          return res.json();
+        } else {
+          return [];
+        }
       })
       .then(data => {
         if (Array.isArray(data)) {

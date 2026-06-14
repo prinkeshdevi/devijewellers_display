@@ -64,12 +64,13 @@ export interface DisplaySetting {
   visibleRates?: string[]; // list of rates to display (e.g. ['gold24k', 'gold22k', 'silver'])
   mediaLoopEnabled?: boolean; // toggle slideshow display globally
   rotateBackgroundEnabled?: boolean; // toggle rotation of background images from media
+  showDate?: boolean; // toggle visibility of the broadcast date
 }
 
 export interface MediaItem {
   id: string;
   title: string;
-  type: 'banner' | 'video' | 'gallery';
+  type: 'banner' | 'video' | 'gallery' | 'background';
   url: string;
   startDate: string;
   endDate: string;

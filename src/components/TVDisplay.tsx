@@ -55,6 +55,7 @@ interface TVDisplayProps {
   rotateBackgroundEnabled?: boolean;
   ratesDisplayDuration?: number;
   slideshowDisplayDuration?: number;
+  showDate?: boolean;
 }
 
 export default function TVDisplay({
@@ -82,7 +83,8 @@ export default function TVDisplay({
   mediaLoopEnabled = true,
   rotateBackgroundEnabled = false,
   ratesDisplayDuration,
-  slideshowDisplayDuration
+  slideshowDisplayDuration,
+  showDate = true
 }: TVDisplayProps) {
   const [time, setTime] = useState<string>('');
   const [date, setDate] = useState<string>('');
@@ -133,27 +135,28 @@ export default function TVDisplay({
   const [mediaTimeRemaining, setMediaTimeRemaining] = useState<number>(0);
 
   // Filter active media items based on status
-  const activeMediaItems = (media || []).filter(item => item.active);
+  const activeSignageMedia = (media || []).filter(item => item.active && item.type !== 'background');
+  const activeBackgroundMedia = (media || []).filter(item => item.active && item.type === 'background');
 
   // Background rotation states for Rates mode
   const [bgMediaIndex, setBgMediaIndex] = useState<number>(0);
   
   // Rotating background logic
   useEffect(() => {
-    if (!rotateBackgroundEnabled || isPaused || activeMediaItems.length === 0) return;
+    if (!rotateBackgroundEnabled || isPaused || activeBackgroundMedia.length === 0) return;
     
     // Switch background every 10 seconds
     const bgInterval = setInterval(() => {
-      setBgMediaIndex(prev => (prev + 1) % activeMediaItems.length);
+      setBgMediaIndex(prev => (prev + 1) % activeBackgroundMedia.length);
     }, 10000);
     
     return () => clearInterval(bgInterval);
-  }, [rotateBackgroundEnabled, isPaused, activeMediaItems.length]);
+  }, [rotateBackgroundEnabled, isPaused, activeBackgroundMedia.length]);
 
   useEffect(() => {
     if (isPaused) return;
 
-    if (!mediaLoopEnabled || activeMediaItems.length === 0) {
+    if (!mediaLoopEnabled || activeSignageMedia.length === 0) {
       setCurrentSignageMode('rates');
       return;
     }
@@ -176,7 +179,7 @@ export default function TVDisplay({
       }, 1000);
     } else {
       // currentSignageMode === 'media'
-      const currentMediaItem = activeMediaItems[activeMediaIndex];
+      const currentMediaItem = activeSignageMedia[activeMediaIndex];
       if (!currentMediaItem) {
         setCurrentSignageMode('rates');
         return;
@@ -190,7 +193,7 @@ export default function TVDisplay({
         elapsed += 1;
         setMediaTimeRemaining(Math.max(0, durationSeconds - elapsed));
         if (elapsed >= durationSeconds) {
-          if (activeMediaIndex + 1 < activeMediaItems.length) {
+          if (activeMediaIndex + 1 < activeSignageMedia.length) {
             setActiveMediaIndex(prev => prev + 1);
           } else {
             setCurrentSignageMode('rates');
@@ -201,7 +204,7 @@ export default function TVDisplay({
     }
 
     return () => clearInterval(intervalId);
-  }, [currentSignageMode, activeMediaIndex, media, mediaLoopEnabled, ratesDisplayDuration, slideshowDisplayDuration, isPaused, activeMediaItems.length]);
+  }, [currentSignageMode, activeMediaIndex, media, mediaLoopEnabled, ratesDisplayDuration, slideshowDisplayDuration, isPaused, activeSignageMedia.length]);
 
   if (isBlackout) {
     return (
@@ -291,7 +294,7 @@ export default function TVDisplay({
 
   const overrideGoldRgb = customGoldColor ? hexToRgb(customGoldColor) : '212, 175, 55';
   
-  const isRotatingBgActive = rotateBackgroundEnabled && activeMediaItems.length > 0;
+  const isRotatingBgActive = rotateBackgroundEnabled && activeBackgroundMedia.length > 0;
 
   return (
     <div 
@@ -392,19 +395,19 @@ export default function TVDisplay({
       </svg>
 
       {/* Dynamic Rotating Background from Media Slideshow (when enabled) */}
-      {rotateBackgroundEnabled && activeMediaItems.length > 0 && activeMediaItems[bgMediaIndex] && (
+      {rotateBackgroundEnabled && activeBackgroundMedia.length > 0 && activeBackgroundMedia[bgMediaIndex] && (
         <div className="absolute inset-0 z-0 transition-opacity duration-1000 ease-in-out pointer-events-none">
-          {activeMediaItems[bgMediaIndex].type === 'video' ? (
+          {activeBackgroundMedia[bgMediaIndex].type === 'video' ? (
             <video 
-              key={activeMediaItems[bgMediaIndex].id}
-              src={activeMediaItems[bgMediaIndex].url}
+              key={activeBackgroundMedia[bgMediaIndex].id}
+              src={activeBackgroundMedia[bgMediaIndex].url}
               className="w-full h-full object-cover"
               autoPlay loop muted playsInline
             />
           ) : (
             <img 
-              key={activeMediaItems[bgMediaIndex].id}
-              src={activeMediaItems[bgMediaIndex].url}
+              key={activeBackgroundMedia[bgMediaIndex].id}
+              src={activeBackgroundMedia[bgMediaIndex].url}
               className="w-full h-full object-cover"
               referrerPolicy="no-referrer"
               alt="bg media"
@@ -460,11 +463,15 @@ export default function TVDisplay({
 
         <div className="flex flex-1 items-center justify-end gap-4 text-right">
           <div className="bg-black/30 border border-zinc-800/80 px-4 py-1.5 rounded-md flex items-center gap-3">
-            <div className="text-left">
-              <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Showroom Date</p>
-              <p className="text-xs font-semibold text-[#F1ECE4]">{date || '9 Jun 2026'}</p>
-            </div>
-            <span className="w-px h-6 bg-zinc-800"></span>
+            {showDate && (
+              <>
+                <div className="text-left">
+                  <p className="text-[10px] font-mono tracking-widest text-zinc-500 uppercase">Showroom Date</p>
+                  <p className="text-xs font-semibold text-[#F1ECE4]">{date || '9 Jun 2026'}</p>
+                </div>
+                <span className="w-px h-6 bg-zinc-800"></span>
+              </>
+            )}
             <div>
               <p className="text-[10px] font-mono tracking-widest text-[#D4AF37] uppercase flex items-center gap-1">
                 <Clock className="w-3 h-3 animate-spin-slow text-[#D4AF37]" /> Live Time
@@ -488,7 +495,7 @@ export default function TVDisplay({
       )}
 
       {/* SWITCHABLE BODY CORE: MAIN RATES GRID OR ACTIVE MEDIA SLIDESHOW */}
-      {currentSignageMode === 'rates' || activeMediaItems.length === 0 ? (
+      {currentSignageMode === 'rates' || activeSignageMedia.length === 0 ? (
         <>
           {/* MAIN RATE CARDS GRID (SPLIT BY METAL GROUPS INTO SIDE-BY-SIDE VERTICAL COLUMNS) */}
           <div className={`flex-1 grid gap-2 md:gap-4 my-1 ${isPortrait ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
@@ -712,7 +719,7 @@ export default function TVDisplay({
           className="absolute inset-0 w-full h-full bg-black z-50 flex flex-col overflow-hidden m-0 p-0 border-none transition-all duration-700"
         >
           {(() => {
-            const currentItem = activeMediaItems[activeMediaIndex];
+            const currentItem = activeSignageMedia[activeMediaIndex];
             if (!currentItem) return null;
             return (
               <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-zinc-950">
@@ -752,7 +759,7 @@ export default function TVDisplay({
 
                   {/* Active Indicator Dots */}
                   <div className="flex items-center gap-1.5 bg-black/60 px-3 py-2 rounded-full border border-zinc-800 backdrop-blur-md self-end md:self-auto">
-                    {activeMediaItems.map((indicator, idx) => (
+                    {activeSignageMedia.map((indicator, idx) => (
                       <div
                         key={indicator.id}
                         className={`transition-all rounded-full ${

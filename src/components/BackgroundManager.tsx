@@ -23,7 +23,7 @@ import {
   Clock
 } from 'lucide-react';
 
-interface MediaManagerProps {
+interface BackgroundManagerProps {
   media: MediaItem[];
   onUpdateMedia: (newMedia: MediaItem[]) => void;
   onTriggerLog: (action: string, details: string) => void;
@@ -31,19 +31,20 @@ interface MediaManagerProps {
   onUpdateDisplaySetting: (newSetting: Partial<DisplaySetting>) => void;
 }
 
-export default function MediaManager({
+export default function BackgroundManager({
   media,
   onUpdateMedia,
   onTriggerLog,
   displaySetting,
   onUpdateDisplaySetting
-}: MediaManagerProps) {
+}: BackgroundManagerProps) {
   
   // New Item modal / Form state
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
   const [newTitle, setNewTitle] = useState<string>('');
-  const [newType, setNewType] = useState<'banner' | 'video' | 'gallery'>('banner');
+  const [newType, setNewType] = useState<string>('background');
   const [newUrl, setNewUrl] = useState<string>('');
+  const [enableDates, setEnableDates] = useState<boolean>(false);
   const [newStart, setNewStart] = useState<string>('2026-06-09');
   const [newEnd, setNewEnd] = useState<string>('2026-07-09');
   const [newDuration, setNewDuration] = useState<number>(8); // Custom slide duration option
@@ -146,10 +147,10 @@ export default function MediaManager({
     const newItem: MediaItem = {
       id: 'm_' + Date.now(),
       title: newTitle,
-      type: newType,
+      type: newType as any,
       url: newUrl,
-      startDate: newStart,
-      endDate: newEnd,
+      startDate: enableDates ? newStart : '',
+      endDate: enableDates ? newEnd : '',
       active: true,
       displayDuration: newDuration
     };
@@ -163,6 +164,7 @@ export default function MediaManager({
     // reset
     setNewTitle('');
     setNewUrl('');
+    setEnableDates(false);
     setUploadedFileName('');
     setUploadedFileSize('');
     setShowAddForm(false);
@@ -176,9 +178,7 @@ export default function MediaManager({
     { title: 'Heritage Golden Choker', url: 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?auto=format&fit=crop&q=80&w=1200' }
   ];
 
-  const filteredMedia = filterType === 'all' 
-    ? media.filter(m => m.type !== 'background') 
-    : media.filter(m => m.type === filterType && m.type !== 'background');
+  const filteredMedia = media.filter(m => m.type === 'background');
 
   return (
     <div id="media-manager-root" className="flex flex-col gap-6 text-[#F1ECE4]">
@@ -187,7 +187,7 @@ export default function MediaManager({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#15161A] p-5 rounded-md border border-zinc-800">
         <div>
           <h2 className="text-lg md:text-xl font-serif font-bold text-[#D4AF37] flex items-center gap-2">
-            <Video className="w-5 h-5 text-[#D4AF37]" /> Dynamic Media Signage Desk
+            <Video className="w-5 h-5 text-[#D4AF37]" /> Dynamic Background Images
           </h2>
           <p className="text-xs text-zinc-400 mt-1">
             Publish high-fidelity banners, brand videos, and gold heritage collections onto active retail display loops.
@@ -208,7 +208,7 @@ export default function MediaManager({
         
         <div className="flex items-start gap-4">
           <div className={`p-3 rounded-md flex items-center justify-center border transition-all ${
-            displaySetting?.mediaLoopEnabled 
+            displaySetting?.rotateBackgroundEnabled 
               ? 'bg-[#D4AF37]/10 border-[#D4AF37] text-[#D4AF37] shadow-[0_0_15px_rgba(212,175,55,0.15)]' 
               : 'bg-zinc-900 border-zinc-700 text-zinc-500'
           }`}>
@@ -217,7 +217,7 @@ export default function MediaManager({
           <div>
             <h3 className="text-sm font-serif font-black uppercase text-[#F8F5EE] tracking-wide flex items-center gap-2">
               SHOWROOM HOLISTIC MEDIA SIGNAGE LOOP
-              {displaySetting?.mediaLoopEnabled ? (
+              {displaySetting?.rotateBackgroundEnabled ? (
                 <span className="text-[9px] font-mono bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 px-2 py-0.5 rounded uppercase font-bold">
                   Active
                 </span>
@@ -236,40 +236,25 @@ export default function MediaManager({
         <button
           type="button"
           onClick={() => {
-            const nextVal = !displaySetting?.mediaLoopEnabled;
-            onUpdateDisplaySetting({ mediaLoopEnabled: nextVal });
+            const nextVal = !displaySetting?.rotateBackgroundEnabled;
+            onUpdateDisplaySetting({ rotateBackgroundEnabled: nextVal });
             onTriggerLog(
               'Global Media Loop Configuration Toggled', 
               `Holistic TV slideshow loops switched ${nextVal ? 'ON' : 'OFF'} by admin panel controller.`
             );
           }}
           className={`px-5 py-2.5 rounded font-serif font-black text-xs uppercase tracking-widest flex items-center gap-2 transition-all cursor-pointer select-none ${
-            displaySetting?.mediaLoopEnabled 
+            displaySetting?.rotateBackgroundEnabled 
               ? 'bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30' 
               : 'bg-[#D4AF37] hover:bg-[#F4D03F] text-black shadow-md'
           }`}
         >
           <Power className="w-4 h-4" />
-          {displaySetting?.mediaLoopEnabled ? 'SUSPEND WHOLE SIGNAGE' : 'ACTIVATE SIGNAGE LOOP'}
+          {displaySetting?.rotateBackgroundEnabled ? 'SUSPEND WHOLE SIGNAGE' : 'ACTIVATE SIGNAGE LOOP'}
         </button>
       </div>
 
-      {/* FILTER BUTTONS ROW */}
-      <div className="flex gap-2 border-b border-zinc-800 pb-2">
-        {['all', 'banner', 'video', 'gallery'].map((t) => (
-          <button
-            key={t}
-            onClick={() => setFilterType(t)}
-            className={`px-3 py-1.5 rounded-full text-xs font-serif capitalize transition-colors ${
-              filterType === t 
-                ? 'bg-[#D4AF37]/15 border border-[#D4AF37] text-[#D4AF37]' 
-                : 'bg-black/20 border border-zinc-800 text-zinc-400 hover:border-zinc-700'
-            }`}
-          >
-            {t === 'all' ? 'All Screen Loops' : t + 's'}
-          </button>
-        ))}
-      </div>
+      {/* FILTER BUTTONS ROW REMOVED */}
 
       {/* ADD NEW MEDIA DIALOG/FORM */}
       {showAddForm && (
@@ -298,16 +283,14 @@ export default function MediaManager({
               />
             </div>
 
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 hidden">
               <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Category Type</label>
               <select
                 value={newType}
                 onChange={(e) => setNewType(e.target.value as any)}
                 className="bg-[#0B0B0D] border border-zinc-800 text-xs p-2 rounded focus:outline-none"
               >
-                <option value="banner">Static Banner (16:9)</option>
-                <option value="video">Promotional Video Loop</option>
-                <option value="gallery">Photo Gallery Slideshow</option>
+                <option value="background">Background Image</option>
               </select>
             </div>
 
@@ -455,24 +438,42 @@ export default function MediaManager({
               )}
             </div>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Broadcast Start Date</label>
-              <input 
-                type="date" 
-                value={newStart}
-                onChange={(e) => setNewStart(e.target.value)}
-                className="bg-[#0B0B0D] border border-zinc-800 text-xs p-2 rounded focus:outline-none"
-              />
-            </div>
+            <div className="md:col-span-2 flex flex-col gap-3 bg-black/20 p-3 rounded-lg border border-zinc-800/50 mt-1">
+              <label className="flex items-center gap-2 cursor-pointer w-fit group">
+                <input 
+                  type="checkbox" 
+                  checked={enableDates}
+                  onChange={(e) => setEnableDates(e.target.checked)}
+                  className="w-4 h-4 rounded appearance-none border border-zinc-600 checked:bg-[#D4AF37] checked:border-[#D4AF37] relative after:content-[''] after:absolute after:hidden checked:after:block after:left-[4.5px] after:top-[1.5px] after:w-1.5 after:h-2.5 after:border-r-2 after:border-b-2 after:border-black after:rotate-45"
+                />
+                <span className="text-xs font-serif font-bold text-[#D4AF37] tracking-wider group-hover:text-[#F4D03F] transition-colors">
+                  Enable Broadcast Dates
+                </span>
+              </label>
 
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Expirational End Date</label>
-              <input 
-                type="date" 
-                value={newEnd}
-                onChange={(e) => setNewEnd(e.target.value)}
-                className="bg-[#0B0B0D] border border-zinc-800 text-xs p-2 rounded focus:outline-none"
-              />
+              {enableDates && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-zinc-800/60">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Broadcast Start Date</label>
+                    <input 
+                      type="date" 
+                      value={newStart}
+                      onChange={(e) => setNewStart(e.target.value)}
+                      className="bg-[#0B0B0D] border border-zinc-800 text-xs p-2 rounded focus:outline-none focus:border-[#D4AF37]"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Expirational End Date</label>
+                    <input 
+                      type="date" 
+                      value={newEnd}
+                      onChange={(e) => setNewEnd(e.target.value)}
+                      className="bg-[#0B0B0D] border border-zinc-800 text-xs p-2 rounded focus:outline-none focus:border-[#D4AF37]"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="md:col-span-2 bg-[#1A1B20]/40 p-3 rounded.md border border-zinc-800/80 mt-2 flex flex-col gap-1">
