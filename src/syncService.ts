@@ -96,25 +96,72 @@ export const syncRates = async () => {
     const isStoreEnabled = !settings || settings.storeRatesInDb !== false;
 
     if (isStoreEnabled) {
-      // Update current rates (always write to id 1)
-      await db.insert(rates)
-        .values({ id: 1, ...rateData })
-        .onConflictDoUpdate({
-          target: rates.id,
-          set: { ...rateData, updatedAt: new Date() }
+      // Check if rates actually changed
+      let hasChanged = true;
+      try {
+        const lastRateResult = await db.select().from(rates).where(eq(rates.id, 1)).limit(1);
+        if (lastRateResult.length > 0) {
+          const lastRate = lastRateResult[0];
+          if (
+            lastRate.gold24kSale === rateData.gold24kSale &&
+            lastRate.gold24kPurchase === rateData.gold24kPurchase &&
+            lastRate.gold22kSale === rateData.gold22kSale &&
+            lastRate.gold22kPurchase === rateData.gold22kPurchase &&
+            lastRate.gold18kSale === rateData.gold18kSale &&
+            lastRate.gold18kPurchase === rateData.gold18kPurchase &&
+            lastRate.silverSale === rateData.silverSale &&
+            lastRate.silverPurchase === rateData.silverPurchase &&
+            lastRate.platinumSale === rateData.platinumSale &&
+            lastRate.platinumPurchase === rateData.platinumPurchase
+          ) {
+            hasChanged = false;
+          }
+        }
+      } catch (e) {
+        console.warn("Could not check last rates for changes", e);
+      }
+
+      if (hasChanged) {
+        // Update current rates (always write to id 1)
+        await db.insert(rates)
+          .values({ id: 1, ...rateData })
+          .onConflictDoUpdate({
+            target: rates.id,
+            set: { ...rateData, updatedAt: new Date() }
+          });
+
+        // History log
+        await db.insert(rateHistoryLogs).values({
+          sourceApiResponse: apiData,
+          ...rateData
         });
 
-      // History log
-      await db.insert(rateHistoryLogs).values({
-        sourceApiResponse: apiData,
-        ...rateData
-      });
+        // Prune rateHistoryLogs to 40 entries maximum
+        try {
+          const logs = await db.select({ id: rateHistoryLogs.id }).from(rateHistoryLogs).orderBy(desc(rateHistoryLogs.id)).limit(40);
+          if (logs.length === 40) {
+            const oldestIdToKeep = logs[39].id;
+            await db.delete(rateHistoryLogs).where(sql`${rateHistoryLogs.id} < ${oldestIdToKeep}`);
+          }
+        } catch (e) {
+          console.error("Failed to prune rate history logs:", e);
+        }
+      }
 
       // Sync log success
       await db.insert(syncLogs).values({
         status: "success",
         apiResponse: apiData
       });
+
+      // Prune syncLogs to 40 entries maximum as well to keep the database clean
+      try {
+        const logs = await db.select({ id: syncLogs.id }).from(syncLogs).orderBy(desc(syncLogs.id)).limit(40);
+        if (logs.length === 40) {
+          const oldestIdToKeep = logs[39].id;
+          await db.delete(syncLogs).where(sql`${syncLogs.id} < ${oldestIdToKeep}`);
+        }
+      } catch (e) {}
     }
 
     // Broadcast via websockets

@@ -238,47 +238,60 @@ export default function SaleStatus({
     });
 
     if (logoImg.complete && logoImg.naturalWidth) {
-      const targetHeight = 160;
+      const targetHeight = 130;
       const targetWidth = logoImg.width * (targetHeight / logoImg.height);
-      ctx.drawImage(logoImg, 600 - targetWidth / 2, 160, targetWidth, targetHeight);
+      ctx.drawImage(logoImg, 600 - targetWidth / 2, 110, targetWidth, targetHeight);
     } else if (!logoImg.complete || !logoImg.naturalWidth) {
       if (systemConfig.logoText) {
           ctx.fillStyle = accentColor;
           ctx.font = "bold 56px 'Poppins', sans-serif";
           ctx.textAlign = 'center';
           ctx.letterSpacing = "4px";
-          ctx.fillText(systemConfig.logoText, 600, 240);
+          ctx.fillText(systemConfig.logoText, 600, 180);
       }
     }
 
-    // 5. Time and Address Block
+    // Custom Header Title
+    ctx.textAlign = 'center';
+    ctx.fillStyle = accentColor;
+    ctx.font = "bold 50px 'Playfair Display', Serif";
+    ctx.letterSpacing = "6px";
+    ctx.fillText(`${headerTitle || 'BULLION RATES'}`.toUpperCase(), 600, 310);
+
+    // Branch Name
+    ctx.fillStyle = textColor;
+    ctx.font = "bold 32px 'Poppins', Sans-serif";
+    ctx.letterSpacing = "4px";
+    ctx.fillText(`${activeBranchName.toUpperCase()}`, 600, 360);
+
+    // 5. Time Block
     ctx.textAlign = 'center';
     ctx.fillStyle = mutedTextColor;
-    ctx.font = "bold 20px 'Poppins', Sans-serif";
+    ctx.font = "italic 24px 'Poppins', Sans-serif";
     ctx.letterSpacing = "2px";
-    ctx.fillText(`${currentTime ? currentTime.split(',')[0] : new Date().toDateString()}`, 600, 390);
+    ctx.fillText(`${currentTime ? currentTime.split(',')[0] : new Date().toDateString()}`, 600, 420);
 
     // Decorative Line Separator
     ctx.strokeStyle = `${accentColor}60`;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(350, 440);
-    ctx.lineTo(850, 440);
+    ctx.moveTo(350, 460);
+    ctx.lineTo(850, 460);
     ctx.stroke();
 
     // 8. Rates Table Header Block
     ctx.fillStyle = `${accentColor}15`;
-    ctx.fillRect(150, 500, 900, 50);
+    ctx.fillRect(150, 520, 900, 50);
     ctx.lineWidth = 1;
     ctx.strokeStyle = `${accentColor}50`;
-    ctx.strokeRect(150, 500, 900, 50);
+    ctx.strokeRect(150, 520, 900, 50);
 
     ctx.fillStyle = accentColor;
-    ctx.font = "bold 18px 'Poppins', Sans-Serif";
+    ctx.font = "bold 22px 'Poppins', Sans-Serif";
     ctx.textAlign = 'left';
-    ctx.fillText("METAL PURITY CATEGORY", 190, 532);
+    ctx.fillText("METAL PURITY CATEGORY", 180, 552);
     ctx.textAlign = 'right';
-    ctx.fillText("LIVE RATE (INR)", 1010, 532);
+    ctx.fillText("LIVE RATE (INR)", 1020, 552);
 
     // 9. Map eligible items
     const displayItems: { label: string; sub: string; val: string }[] = [];
@@ -288,38 +301,38 @@ export default function SaleStatus({
     if (showSilver) displayItems.push({ label: 'SILVER RATE', sub: '1 kg', val: formatINR(rates.silver) });
     if (showPlatinum) displayItems.push({ label: 'PLATINUM PT950', sub: '10gm', val: formatINR(rates.platinum) });
 
-    let currentY = 590;
+    let currentY = 610;
     displayItems.forEach((item, index) => {
       // Row divider
       if (index > 0) {
         ctx.strokeStyle = `${accentColor}20`;
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(140, currentY - 25);
-        ctx.lineTo(1060, currentY - 25);
+        ctx.moveTo(140, currentY - 30);
+        ctx.lineTo(1060, currentY - 30);
         ctx.stroke();
       }
 
       // Label & Sub labels
       ctx.fillStyle = textColor;
-      ctx.font = "bold 56px 'Playfair Display', Serif";
+      ctx.font = "bold 64px 'Playfair Display', Serif";
       ctx.textAlign = 'left';
       ctx.fillText(item.label, 150, currentY + 20);
 
       ctx.fillStyle = mutedTextColor;
-      ctx.font = "28px 'Poppins', Sans-serif";
-      ctx.fillText(item.sub, 150, currentY + 65);
+      ctx.font = "32px 'Poppins', Sans-serif";
+      ctx.fillText(item.sub, 150, currentY + 68);
 
       // Value column
       const valGrad = ctx.createLinearGradient(800, 0, 1050, 0);
       valGrad.addColorStop(0, '#FFFFFF');
       valGrad.addColorStop(1, accentColor);
       ctx.fillStyle = valGrad;
-      ctx.font = "900 64px 'JetBrains Mono', Monospace";
+      ctx.font = "900 76px 'JetBrains Mono', Monospace";
       ctx.textAlign = 'right';
-      ctx.fillText(item.val, 1050, currentY + 36);
+      ctx.fillText(item.val, 1050, currentY + 38);
 
-      currentY += 105;
+      currentY += 115;
     });
 
     // 10. Footer info
