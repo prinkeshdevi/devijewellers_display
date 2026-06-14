@@ -601,8 +601,8 @@ export default function TVDisplay({
             {silverRateItems.length > 0 && (
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 px-1 mb-1 h-[60px] md:h-[70px]">
-                  <span className="h-0.5 w-8 bg-zinc-400"></span>
-                  <span className="text-[25px] font-poppins tracking-widest text-zinc-400 uppercase font-bold">Silver & Other Metals <span className="text-[25px] normal-case opacity-80 font-semibold">Per 1Kg</span></span>
+                  <span className="h-0.5 w-8 bg-[#ededed]"></span>
+                  <span className="text-[25px] font-poppins tracking-widest text-[#ededed] uppercase font-bold">Silver & Other Metals <span className="text-[25px] normal-case opacity-80 font-semibold">Per 1Kg</span></span>
                 </div>
                 <div 
                   id="tv-silver-rate-grid" 
@@ -618,13 +618,13 @@ export default function TVDisplay({
                     return (
                       <div key={item.key} className="relative w-full px-0 md:px-2 py-0 my-1 transition-all duration-500 group">
                         {/* Horizontal Connecting Line behind */}
-                        <div className={`absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 opacity-50 z-0 rounded-full ${item.key === 'silver' ? 'bg-zinc-400' : bgAccentLine}`} />
+                        <div className={`absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 opacity-50 z-0 rounded-full ${item.key === 'silver' ? 'bg-[#ededed]' : bgAccentLine}`} />
                         
                         {/* Rate Box Shape Container */}
                         <div className="relative w-full filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
                           
                           {/* Border Layer (Silver/Accent) */}
-                          <div className={`clip-hexagon absolute inset-0 flex items-center justify-center ${item.key === 'silver' ? 'bg-zinc-400' : bgAccentLine}`}>
+                          <div className={`clip-hexagon absolute inset-0 flex items-center justify-center ${item.key === 'silver' ? 'bg-[#ededed]' : bgAccentLine}`}>
                              {/* Extra glow layer for top edge visual */}
                              <div className="absolute top-0 left-0 right-0 h-[2px] bg-white opacity-50" />
                           </div>
@@ -644,7 +644,7 @@ export default function TVDisplay({
 
                             <div className="mb-0 mt-1">
                               <h3 
-                                className={`font-poppins font-bold uppercase tracking-widest ${item.key === 'silver' ? 'text-zinc-300' : 'text-[#E5E4E2]'}`}
+                                className={`font-poppins font-bold uppercase tracking-widest ${item.key === 'silver' ? 'text-[#ededed]' : 'text-[#E5E4E2]'}`}
                                 style={{ fontSize: labelFontSize ? `${Math.max(labelFontSize, 30)}px` : '36px' }}
                               >
                                 {item.label}
@@ -659,7 +659,7 @@ export default function TVDisplay({
                                 <span 
                                   className={`text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none ${
                                     item.key === 'silver' 
-                                      ? 'text-zinc-100' 
+                                      ? 'text-[#ededed]' 
                                       : 'text-[#E5E4E2]'
                                   }`}
                                   style={{ fontSize: rateFontSize ? `${Math.max(rateFontSize, 36)}px` : '64px' }}
@@ -675,7 +675,7 @@ export default function TVDisplay({
                               <div className="flex-1 flex flex-col items-center justify-between px-2">
                                 <span className="text-[16px] md:text-[20px] xl:text-[23px] text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] xl:tracking-[0.2em] border-b border-zinc-400/30 pb-1 w-full text-center mb-1">PURCHASE RATE</span>
                                 <span 
-                                  className="text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none text-zinc-400"
+                                  className={`text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none ${item.key === 'silver' ? 'text-[#ededed]' : 'text-zinc-400'}`}
                                   style={{ fontSize: rateFontSize ? `${Math.max(rateFontSize, 36)}px` : '64px' }}
                                 >
                                   {formatPrice(item.purchaseValue || (item.value - 2), isSilver)}
