@@ -270,8 +270,8 @@ export default function BackgroundManager({
             Register New Showroom Digital Wall Asset
           </h3>
 
-          <form onSubmit={addNewMedia} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1">
+          <form onSubmit={addNewMedia} className="grid grid-cols-1 gap-4">
+            <div className="flex flex-col gap-1 w-full">
               <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Media Title Name</label>
               <input 
                 type="text" 
@@ -294,7 +294,7 @@ export default function BackgroundManager({
               </select>
             </div>
 
-            <div className="flex flex-col gap-2.5 md:col-span-2 bg-black/10 p-3 rounded-lg border border-zinc-800/60">
+            <div className="flex flex-col gap-2.5  bg-black/10 p-3 rounded-lg border border-zinc-800/60">
               {/* Source Mode Tabs */}
               <div className="flex border-b border-zinc-800 gap-4 pb-1">
                 <button
@@ -438,15 +438,15 @@ export default function BackgroundManager({
               )}
             </div>
 
-            <div className="md:col-span-2 flex flex-col gap-3 bg-black/20 p-3 rounded-lg border border-zinc-800/50 mt-1">
-              <label className="flex items-center gap-2 cursor-pointer w-fit group">
+            <div className="flex flex-col gap-3 bg-black/20 p-3 rounded-lg border border-zinc-800/50 mt-1">
+              <label className="flex items-center gap-3 cursor-pointer w-fit group">
                 <input 
                   type="checkbox" 
                   checked={enableDates}
                   onChange={(e) => setEnableDates(e.target.checked)}
-                  className="w-4 h-4 rounded appearance-none border border-zinc-600 checked:bg-[#D4AF37] checked:border-[#D4AF37] relative after:content-[''] after:absolute after:hidden checked:after:block after:left-[4.5px] after:top-[1.5px] after:w-1.5 after:h-2.5 after:border-r-2 after:border-b-2 after:border-black after:rotate-45"
+                  className="w-4 h-4 rounded appearance-none border border-zinc-600 checked:bg-[#D4AF37] checked:border-[#D4AF37] flex-shrink-0 relative after:content-[''] after:absolute after:hidden checked:after:block after:left-[4px] after:top-[1px] after:w-1.5 after:h-2.5 after:border-r-2 after:border-b-2 after:border-black after:rotate-45"
                 />
-                <span className="text-xs font-serif font-bold text-[#D4AF37] tracking-wider group-hover:text-[#F4D03F] transition-colors">
+                <span className="text-xs font-serif font-bold text-[#D4AF37] tracking-wider group-hover:text-[#F4D03F] transition-colors mt-0.5">
                   Enable Broadcast Dates
                 </span>
               </label>
@@ -476,7 +476,7 @@ export default function BackgroundManager({
               )}
             </div>
 
-            <div className="md:col-span-2 bg-[#1A1B20]/40 p-3 rounded.md border border-zinc-800/80 mt-2 flex flex-col gap-1">
+            <div className=" bg-[#1A1B20]/40 p-3 rounded-md border border-zinc-800/80 mt-2 flex flex-col gap-1">
               <label className="text-[10px] font-mono uppercase tracking-widest text-[#D4AF37] font-bold flex items-center gap-1.5">
                 <Clock className="w-3.5 h-3.5" />
                 <span>Custom Slideshow Time Interval (Duration)</span>
@@ -494,7 +494,7 @@ export default function BackgroundManager({
               />
             </div>
 
-            <div className="md:col-span-2 flex gap-2 justify-end mt-2">
+            <div className=" flex gap-2 justify-end mt-2">
               <button
                 type="button"
                 onClick={() => setShowAddForm(false)}
