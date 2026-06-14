@@ -560,29 +560,31 @@ export default function TVDisplay({
                             </div>
 
                             {/* HUGE Rate Typography */}
-                            <div className="my-0.5 grid grid-cols-[1fr_auto_1fr] items-end justify-items-center w-full gap-x-2 sm:gap-x-6 lg:gap-x-8 gap-y-1 min-h-0 shrink">
-                              {/* Row 1: Labels */}
-                              <span className="text-[20px] md:text-[25px] text-[#FFD700] font-poppins uppercase font-black tracking-[0.2em] border-b border-[#FFD700]/30 pb-0.5 text-center leading-tight">SALE RATE</span>
+                            <div className="my-1 flex items-stretch w-full min-h-0 shrink">
+                              {/* Left: SALE */}
+                              <div className="flex-1 flex flex-col items-center justify-between px-2">
+                                <span className="text-[16px] md:text-[20px] xl:text-[23px] text-[#FFD700] font-poppins uppercase font-black tracking-[0.1em] xl:tracking-[0.2em] border-b border-[#FFD700]/30 pb-1 w-full text-center mb-1">SALE RATE</span>
+                                <span 
+                                  className="text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none gold-gradient"
+                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
+                                >
+                                  {formatPrice(item.value, false)}
+                                </span>
+                              </div>
                               
-                              {/* Divider spanning 2 rows */}
-                              <div className="w-[3px] rounded-full bg-white row-span-2 self-stretch place-self-center my-0.5"></div>
+                              {/* Divider */}
+                              <div className="w-[3px] rounded-full bg-[#FFFFFF] opacity-80 shrink-0 my-2"></div>
                               
-                              <span className="text-[20px] md:text-[25px] text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.2em] border-b border-zinc-400/30 pb-0.5 text-center leading-tight">PURCHASE RATE</span>
-
-                              {/* Row 2: Values */}
-                              <span 
-                                className="text-2xl md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none gold-gradient self-start pt-1"
-                                style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
-                              >
-                                {formatPrice(item.value, false)}
-                              </span>
-                              
-                              <span 
-                                className="text-2xl md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none text-zinc-300 self-start pt-1"
-                                style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
-                              >
-                                {formatPrice(item.purchaseValue || (item.value - 200), false)}
-                              </span>
+                              {/* Right: PURCHASE */}
+                              <div className="flex-1 flex flex-col items-center justify-between px-2">
+                                <span className="text-[16px] md:text-[20px] xl:text-[23px] text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] xl:tracking-[0.2em] border-b border-zinc-400/30 pb-1 w-full text-center mb-1">PURCHASE RATE</span>
+                                <span 
+                                  className="text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none text-zinc-300"
+                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
+                                >
+                                  {formatPrice(item.purchaseValue || (item.value - 200), false)}
+                                </span>
+                              </div>
                             </div>
 
                             {/* Bottom detail row removed as requested */}
@@ -650,33 +652,35 @@ export default function TVDisplay({
                             </div>
 
                             {/* HUGE Rate Typography */}
-                            <div className="my-0.5 grid grid-cols-[1fr_auto_1fr] items-end justify-items-center w-full gap-x-2 sm:gap-x-6 lg:gap-x-8 gap-y-1 min-h-0 shrink">
-                              {/* Row 1: Labels */}
-                              <span className="text-[20px] md:text-[25px] text-[#E5E4E2] font-poppins uppercase font-black tracking-[0.2em] border-b border-[#E5E4E2]/30 pb-0.5 text-center leading-tight">SALE RATE</span>
+                            <div className="my-1 flex items-stretch w-full min-h-0 shrink">
+                              {/* Left: SALE */}
+                              <div className="flex-1 flex flex-col items-center justify-between px-2">
+                                <span className="text-[16px] md:text-[20px] xl:text-[23px] text-[#E5E4E2] font-poppins uppercase font-black tracking-[0.1em] xl:tracking-[0.2em] border-b border-[#E5E4E2]/30 pb-1 w-full text-center mb-1">SALE RATE</span>
+                                <span 
+                                  className={`text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none ${
+                                    item.key === 'silver' 
+                                      ? 'text-zinc-100' 
+                                      : 'text-[#E5E4E2]'
+                                  }`}
+                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
+                                >
+                                  {formatPrice(item.value, isSilver)}
+                                </span>
+                              </div>
                               
-                              {/* Divider spanning 2 rows */}
-                              <div className="w-[3px] rounded-full bg-white row-span-2 self-stretch place-self-center my-0.5"></div>
+                              {/* Divider */}
+                              <div className="w-[3px] rounded-full bg-[#FFFFFF] opacity-80 shrink-0 my-2"></div>
                               
-                              <span className="text-[20px] md:text-[25px] text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.2em] border-b border-zinc-400/30 pb-0.5 text-center leading-tight">PURCHASE RATE</span>
-
-                              {/* Row 2: Values */}
-                              <span 
-                                className={`text-2xl md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none self-start pt-1 ${
-                                  item.key === 'silver' 
-                                    ? 'text-zinc-100' 
-                                    : 'text-[#E5E4E2]'
-                                }`}
-                                style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
-                              >
-                                {formatPrice(item.value, isSilver)}
-                              </span>
-                              
-                              <span 
-                                className="text-2xl md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none text-zinc-400 self-start pt-1"
-                                style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
-                              >
-                                {formatPrice(item.purchaseValue || (item.value - 2), isSilver)}
-                              </span>
+                              {/* Right: PURCHASE */}
+                              <div className="flex-1 flex flex-col items-center justify-between px-2">
+                                <span className="text-[16px] md:text-[20px] xl:text-[23px] text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] xl:tracking-[0.2em] border-b border-zinc-400/30 pb-1 w-full text-center mb-1">PURCHASE RATE</span>
+                                <span 
+                                  className="text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none text-zinc-400"
+                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
+                                >
+                                  {formatPrice(item.purchaseValue || (item.value - 2), isSilver)}
+                                </span>
+                              </div>
                             </div>
 
 
