@@ -86,6 +86,7 @@ export default function RateSync({
       if (calcSettings.enableAutoSync) {
         await syncMarketsApi(); // force a sync to apply
       }
+      setTimeout(() => window.location.reload(), 1000);
     } catch (e: any) {
       triggerError('Failed to save settings: ' + e.message);
     }
@@ -96,6 +97,7 @@ export default function RateSync({
   const saveApiSettings = () => {
     onUpdateSystemConfig({ ...systemConfig, rateApiUrl: apiUrl });
     triggerSuccess('API Settings Saved Successfully');
+    setTimeout(() => window.location.reload(), 1000);
   };
   
   const resetSettings = () => {

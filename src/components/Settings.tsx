@@ -157,7 +157,10 @@ export default function SettingsComponent({
     onTriggerLog('Settings Saved', 'Reprogrammed global branding labels, tickers speed, and Metal API end-nodes.');
     
     setSuccess(true);
-    setTimeout(() => setSuccess(false), 3000);
+    setTimeout(() => {
+      setSuccess(false);
+      window.location.reload();
+    }, 1000);
   };
 
   return (

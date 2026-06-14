@@ -553,12 +553,12 @@ export default function TVDisplay({
                             <div className="mb-0 mt-1">
                               <h3 
                                 className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37]"
-                                style={{ fontSize: labelFontSize ? `${labelFontSize}px` : '12px' }}
+                                style={{ fontSize: labelFontSize ? `${Math.max(labelFontSize, 30)}px` : '36px' }}
                               >
                                 {item.label}
                               </h3>
                             </div>
-
+                            
                             {/* HUGE Rate Typography */}
                             <div className="my-1 flex items-stretch w-full min-h-0 shrink">
                               {/* Left: SALE */}
@@ -566,7 +566,7 @@ export default function TVDisplay({
                                 <span className="text-[16px] md:text-[20px] xl:text-[23px] text-[#FFD700] font-poppins uppercase font-black tracking-[0.1em] xl:tracking-[0.2em] border-b border-[#FFD700]/30 pb-1 w-full text-center mb-1">SALE RATE</span>
                                 <span 
                                   className="text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none gold-gradient"
-                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
+                                  style={{ fontSize: rateFontSize ? `${Math.max(rateFontSize, 40)}px` : '72px' }}
                                 >
                                   {formatPrice(item.value, false)}
                                 </span>
@@ -580,7 +580,7 @@ export default function TVDisplay({
                                 <span className="text-[16px] md:text-[20px] xl:text-[23px] text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] xl:tracking-[0.2em] border-b border-zinc-400/30 pb-1 w-full text-center mb-1">PURCHASE RATE</span>
                                 <span 
                                   className="text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none text-zinc-300"
-                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
+                                  style={{ fontSize: rateFontSize ? `${Math.max(rateFontSize, 40)}px` : '72px' }}
                                 >
                                   {formatPrice(item.purchaseValue || (item.value - 200), false)}
                                 </span>
@@ -645,7 +645,7 @@ export default function TVDisplay({
                             <div className="mb-0 mt-1">
                               <h3 
                                 className={`font-poppins font-bold uppercase tracking-widest ${item.key === 'silver' ? 'text-zinc-300' : 'text-[#E5E4E2]'}`}
-                                style={{ fontSize: labelFontSize ? `${labelFontSize}px` : '12px' }}
+                                style={{ fontSize: labelFontSize ? `${Math.max(labelFontSize, 30)}px` : '36px' }}
                               >
                                 {item.label}
                               </h3>
@@ -662,7 +662,7 @@ export default function TVDisplay({
                                       ? 'text-zinc-100' 
                                       : 'text-[#E5E4E2]'
                                   }`}
-                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
+                                  style={{ fontSize: rateFontSize ? `${Math.max(rateFontSize, 36)}px` : '64px' }}
                                 >
                                   {formatPrice(item.value, isSilver)}
                                 </span>
@@ -676,7 +676,7 @@ export default function TVDisplay({
                                 <span className="text-[16px] md:text-[20px] xl:text-[23px] text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] xl:tracking-[0.2em] border-b border-zinc-400/30 pb-1 w-full text-center mb-1">PURCHASE RATE</span>
                                 <span 
                                   className="text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none text-zinc-400"
-                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : undefined }}
+                                  style={{ fontSize: rateFontSize ? `${Math.max(rateFontSize, 36)}px` : '64px' }}
                                 >
                                   {formatPrice(item.purchaseValue || (item.value - 2), isSilver)}
                                 </span>
