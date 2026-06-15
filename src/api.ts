@@ -202,12 +202,15 @@ apiRouter.get("/rates/sync", async (req, res) => {
 apiRouter.get("/settings", async (req, res) => {
   try {
     let current = await db.select().from(calculationSettings).limit(1).catch(async e => {
-      console.warn("Retrying settings...");
+      console.warn("Retrying settings (auto-migrating)...");
+      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS enable_auto_sync BOOLEAN NOT NULL DEFAULT true;`).catch(() => {});
+      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS store_rates_in_db BOOLEAN NOT NULL DEFAULT true;`).catch(() => {});
       return await db.select().from(calculationSettings).limit(1);
     });
     res.json(current[0] || { syncIntervalMinutes: 1, silverPurchaseOffset: 5000, platinumPurchaseOffset: 4000, enableAutoSync: true });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    const rootCause = err.cause ? String(err.cause) : err.stack;
+    res.status(500).json({ error: err.message + ' | CAUSE: ' + rootCause });
   }
 });
 
@@ -217,11 +220,21 @@ apiRouter.post("/settings", async (req, res) => {
       await db.insert(calculationSettings).values({ id: 1, ...req.body }).onConflictDoUpdate({
         target: calculationSettings.id,
         set: { ...req.body, updatedAt: new Date() }
+      }).catch(async (e) => {
+        console.warn("Attempting auto-migration on settings post due to error:", e);
+        await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS enable_auto_sync BOOLEAN NOT NULL DEFAULT true;`).catch(() => {});
+        await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS store_rates_in_db BOOLEAN NOT NULL DEFAULT true;`).catch(() => {});
+        
+        await db.insert(calculationSettings).values({ id: 1, ...req.body }).onConflictDoUpdate({
+          target: calculationSettings.id,
+          set: { ...req.body, updatedAt: new Date() }
+        });
       });
     }
     res.json({ success: true });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    const rootCause = err.cause ? String(err.cause) : err.stack;
+    res.status(500).json({ error: err.message + ' | CAUSE: ' + rootCause });
   }
 });
 
