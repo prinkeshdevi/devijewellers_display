@@ -502,10 +502,6 @@ export default function TVDisplay({
             {/* GOLD RATES COLUMN */}
             {goldRateItems.length > 0 && (
               <div className="flex flex-col gap-1 w-full h-full min-h-0 shrink">
-                <div className="flex items-center gap-2 px-1 mb-1 h-[60px] md:h-[70px]">
-                  <span className="h-0.5 w-8 bg-[#D4AF37]"></span>
-                  <span className="text-[25px] font-poppins tracking-widest text-[#D4AF37] uppercase font-bold">Gold Rates <span className="text-[25px] normal-case opacity-80 font-semibold">Per 10Gms</span></span>
-                </div>
                 <div 
                   id="tv-gold-rate-grid" 
                   className="flex-1 w-full h-full grid gap-1 md:gap-2 min-h-0 shrink"
@@ -601,10 +597,6 @@ export default function TVDisplay({
             {/* SILVER & OTHER METALS COLUMN */}
             {silverRateItems.length > 0 && (
               <div className="flex flex-col gap-1 w-full h-full min-h-0 shrink">
-                <div className="flex items-center gap-2 px-1 mb-1 h-[60px] md:h-[70px]">
-                  <span className="h-0.5 w-8 bg-[#ededed]"></span>
-                  <span className="text-[25px] font-poppins tracking-widest text-[#ededed] uppercase font-bold">Silver & Other Metals <span className="text-[25px] normal-case opacity-80 font-semibold">Per 1Kg</span></span>
-                </div>
                 <div 
                   id="tv-silver-rate-grid" 
                   className="flex-1 w-full h-full grid gap-1 md:gap-2 min-h-0 shrink"

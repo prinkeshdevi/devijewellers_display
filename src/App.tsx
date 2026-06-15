@@ -622,11 +622,27 @@ export default function App() {
           mode={displaySetting.mode}
           theme={displaySetting.theme}
           tickerText={displaySetting.tickerText}
-          media={media}
-          announcementText={displaySetting.announcements}
+          announcementText={displaySetting.announcementText}
+          showAnnouncement={displaySetting.showAnnouncement}
+          isBlackout={displaySetting.isBlackout}
+          isPaused={displaySetting.isPaused}
+          companyConfig={systemConfig}
+          activePromo={activePromoObj}
           customPrimaryBg={displaySetting.customPrimaryBg}
-          customGoldColor={displaySetting.customGoldColor}
+          customSecondaryBg={displaySetting.customSecondaryBg}
           customCardBg={displaySetting.customCardBg}
+          customGoldColor={displaySetting.customGoldColor}
+          rateFontSize={displaySetting.rateFontSize}
+          goldFontSize={displaySetting.goldFontSize}
+          silverFontSize={displaySetting.silverFontSize}
+          labelFontSize={displaySetting.labelFontSize}
+          visibleRates={displaySetting.visibleRates}
+          media={media}
+          mediaLoopEnabled={displaySetting.mediaLoopEnabled !== false}
+          rotateBackgroundEnabled={displaySetting.rotateBackgroundEnabled}
+          ratesDisplayDuration={displaySetting.ratesDisplayDuration}
+          slideshowDisplayDuration={displaySetting.slideshowDisplayDuration}
+          showDate={displaySetting.showDate !== false}
         />
       </div>
     );
