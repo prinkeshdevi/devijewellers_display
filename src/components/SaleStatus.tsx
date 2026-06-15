@@ -315,22 +315,22 @@ export default function SaleStatus({
 
       // Label & Sub labels
       ctx.fillStyle = textColor;
-      ctx.font = "bold 64px 'Poppins', sans-serif";
+      ctx.font = "bold 50px 'Poppins', sans-serif";
       ctx.textAlign = 'left';
-      ctx.fillText(item.label, 150, currentY + 20);
+      ctx.fillText(item.label, 180, currentY + 15);
 
       ctx.fillStyle = mutedTextColor;
-      ctx.font = "32px 'Poppins', sans-serif";
-      ctx.fillText(item.sub, 150, currentY + 68);
+      ctx.font = "26px 'Poppins', sans-serif";
+      ctx.fillText(item.sub, 180, currentY + 55);
 
       // Value column
-      const valGrad = ctx.createLinearGradient(800, 0, 1050, 0);
+      const valGrad = ctx.createLinearGradient(800, 0, 1020, 0);
       valGrad.addColorStop(0, '#FFFFFF');
       valGrad.addColorStop(1, accentColor);
       ctx.fillStyle = valGrad;
-      ctx.font = "900 76px 'Poppins', sans-serif";
+      ctx.font = "900 64px 'Poppins', sans-serif";
       ctx.textAlign = 'right';
-      ctx.fillText(item.val, 1050, currentY + 38);
+      ctx.fillText(item.val, 1020, currentY + 30);
 
       currentY += 115;
     });
