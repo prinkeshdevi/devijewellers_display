@@ -51,7 +51,11 @@ export default function RateSync({
     gold18kSaleMult: 0.860,
     gold18kPurMult: 0.800,
     enableAutoSync: true,
-    storeRatesInDb: true
+    storeRatesInDb: true,
+    useManualRates: false,
+    manualGold24k: 150000,
+    manualSilver: 250000,
+    manualPlatinum: 0,
   });
 
   useEffect(() => {
@@ -129,7 +133,18 @@ export default function RateSync({
     const defaults = {
       syncIntervalMinutes: 1,
       silverPurchaseOffset: 5000,
-      platinumPurchaseOffset: 4000
+      platinumPurchaseOffset: 4000,
+      gold24kPurMult: 0.985,
+      gold22kSaleMult: 0.920,
+      gold22kPurMult: 0.900,
+      gold18kSaleMult: 0.860,
+      gold18kPurMult: 0.800,
+      enableAutoSync: true,
+      storeRatesInDb: true,
+      useManualRates: false,
+      manualGold24k: 150000,
+      manualSilver: 250000,
+      manualPlatinum: 0,
     };
     setCalcSettings(defaults);
     triggerSuccess('Formulas reset to defaults');
@@ -255,7 +270,7 @@ export default function RateSync({
             <span className="text-[#D4AF37] font-mono text-xs tracking-widest uppercase mb-2">24K Gold Rate</span>
             <input 
               type="number"
-              value={baseGold24k}
+              value={baseGold24k ?? 0}
               onChange={(e) => setBaseGold24k(parseFloat(e.target.value) || 0)}
               className="w-full text-center bg-transparent text-4xl font-serif font-black text-white focus:outline-none focus:text-[#D4AF37] transition-colors"
             />
@@ -271,7 +286,7 @@ export default function RateSync({
             <input 
               type="number"
               step="0.01"
-              value={baseSilver}
+              value={baseSilver ?? 0}
               onChange={(e) => setBaseSilver(parseFloat(e.target.value) || 0)}
               className="w-full text-center bg-transparent text-3xl md:text-4xl font-serif font-black text-white focus:outline-none focus:text-zinc-300 transition-colors"
             />
@@ -286,7 +301,7 @@ export default function RateSync({
             <span className="text-zinc-400 font-mono text-xs tracking-widest uppercase mb-2">Platinum Rate</span>
             <input 
               type="number"
-              value={basePlatinum}
+              value={basePlatinum ?? 0}
               onChange={(e) => setBasePlatinum(parseFloat(e.target.value) || 0)}
               className="w-full text-center bg-transparent text-3xl md:text-4xl font-serif font-black text-white focus:outline-none focus:text-zinc-400 transition-colors"
             />

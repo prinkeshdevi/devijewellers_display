@@ -128,6 +128,24 @@ export default function App() {
       }
     };
 
+    const handleStorageEvent = (e: StorageEvent) => {
+       if (e.key && e.key.startsWith('asm_') && e.newValue) {
+         try {
+           const parsed = JSON.parse(e.newValue);
+           switch(e.key) {
+             case 'asm_rates': setRates(parsed); break;
+             case 'asm_displaySetting': setDisplaySetting(parsed); break;
+             case 'asm_systemConfig': setSystemConfig(parsed); break;
+             case 'asm_media': setMedia(parsed); break;
+             case 'asm_promos': setPromos(parsed); break;
+             case 'asm_branches': setBranches(parsed); break;
+             case 'asm_trends': setTrends(parsed); break;
+           }
+         } catch(err) {}
+       }
+    };
+    window.addEventListener('storage', handleStorageEvent);
+
     loadStateFromApi('rates', setRates, INITIAL_RATES);
     loadStateFromApi('trends', setTrends, INITIAL_TRENDS);
     loadStateFromApi('displaySetting', setDisplaySetting, INITIAL_DISPLAY_SETTING);
@@ -146,6 +164,20 @@ export default function App() {
     loadStateFromApi('history', setHistory, INITIAL_HISTORY);
     const savedSync = localStorage.getItem('asm_lastSyncTime');
     if (savedSync) setLastSyncTime(JSON.parse(savedSync));
+
+    // Fallback polling for states to ensure multi-tab/multi-device sync
+    const statePoll = setInterval(() => {
+      loadStateFromApi('displaySetting', setDisplaySetting, INITIAL_DISPLAY_SETTING);
+      loadStateFromApi('systemConfig', setSystemConfig, INITIAL_SYSTEM_CONFIG);
+      loadStateFromApi('media', setMedia, INITIAL_MEDIA);
+      loadStateFromApi('promos', setPromos, INITIAL_PROMOS);
+      loadStateFromApi('branches', setBranches, INITIAL_BRANCHES);
+    }, 15000);
+
+    return () => {
+      clearInterval(statePoll);
+      window.removeEventListener('storage', handleStorageEvent);
+    };
   }, []);
 
   // Auto-sync rates periodically based on API

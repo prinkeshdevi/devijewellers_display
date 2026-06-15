@@ -201,7 +201,7 @@ export default function SettingsComponent({
                 <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Company Atelier Name (All Caps)</label>
                 <input 
                   type="text" 
-                  value={company}
+                  value={company ?? ''}
                   onChange={(e) => setCompany(e.target.value)}
                   className="bg-[#0B0B0D] border border-zinc-800 focus:border-[#D4AF37] rounded p-2.5 text-xs font-serif font-bold text-[#F8F5EE] focus:outline-none tracking-wide"
                 />
@@ -211,7 +211,7 @@ export default function SettingsComponent({
                 <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Atelier Desk Helpline Number</label>
                 <input 
                   type="text" 
-                  value={contact}
+                  value={contact ?? ''}
                   onChange={(e) => setContact(e.target.value)}
                   className="bg-[#0B0B0D] border border-zinc-800 focus:border-[#D4AF37] rounded p-2.5 text-xs font-mono text-[#F8F5EE] focus:outline-none"
                 />
@@ -324,7 +324,7 @@ export default function SettingsComponent({
                 type="range" 
                 min={15}
                 max={90}
-                value={speed} 
+                value={speed ?? 50} 
                 onChange={(e) => setSpeed(parseInt(e.target.value))}
                 className="w-full accent-[#D4AF37] bg-zinc-800 h-1.5 rounded-lg outline-none"
               />
@@ -527,7 +527,7 @@ export default function SettingsComponent({
                 <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Gold/Silver Global API Endpoint</label>
                 <input 
                   type="text" 
-                  value={goldUrl}
+                  value={goldUrl ?? ''}
                   onChange={(e) => setGoldUrl(e.target.value)}
                   className="bg-[#0B0B0D] border border-zinc-850 rounded p-2 text-[10px] font-mono text-zinc-300 focus:outline-none"
                 />
