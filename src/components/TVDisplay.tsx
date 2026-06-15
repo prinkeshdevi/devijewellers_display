@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   JewelleryRates, 
   RateTrends, 
@@ -141,6 +141,37 @@ export default function TVDisplay({
   // Background rotation states for Rates mode
   const [bgMediaIndex, setBgMediaIndex] = useState<number>(0);
   
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (!containerRef.current || !contentRef.current) return;
+      const containerWidth = containerRef.current.clientWidth;
+      const containerHeight = containerRef.current.clientHeight;
+
+      // Base internal resolution (fixed)
+      // Standard 16:9 1080p canvas bounds
+      const contentWidth = mode === 'portrait' ? 1080 : 1920; 
+      const contentHeight = mode === 'portrait' ? 1920 : 1080;
+
+      const scaleX = containerWidth / contentWidth;
+      const scaleY = containerHeight / contentHeight;
+      const scale = Math.min(scaleX, scaleY);
+
+      contentRef.current.style.transform = `scale(${scale})`;
+      contentRef.current.style.transformOrigin = 'center center';
+    };
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+    handleResize();
+
+    return () => resizeObserver.disconnect();
+  }, [mode]);
+
   // Rotating background logic
   useEffect(() => {
     if (!rotateBackgroundEnabled || isPaused || activeBackgroundMedia.length === 0) return;
@@ -298,13 +329,25 @@ export default function TVDisplay({
 
   return (
     <div 
-      id="tv-display-root"
-      className={`w-full text-[#F8F5EE] select-none h-screen flex flex-col justify-between font-poppins transition-all duration-700 p-2 relative overflow-hidden ${isRotatingBgActive ? 'bg-black' : themeBg}`}
-      style={{ 
-        backgroundColor: isRotatingBgActive ? 'transparent' : (customPrimaryBg || undefined),
-        borderColor: customGoldColor ? `${customGoldColor}30` : undefined
+      ref={containerRef}
+      className="w-full h-full relative overflow-hidden bg-black flex items-center justify-center"
+      style={{
+        // Fallback for context outside the App wrapper
+        minHeight: '100%',
       }}
     >
+      <div 
+        ref={contentRef}
+        id="tv-display-root"
+        className={`text-[#F8F5EE] select-none flex flex-col justify-between font-poppins transition-all duration-700 p-2 relative overflow-hidden ${isRotatingBgActive ? 'bg-black' : themeBg}`}
+        style={{ 
+          width: mode === 'portrait' ? '1080px' : '1920px',
+          height: mode === 'portrait' ? '1920px' : '1080px',
+          backgroundColor: isRotatingBgActive ? 'transparent' : (customPrimaryBg || undefined),
+          borderColor: customGoldColor ? `${customGoldColor}30` : undefined,
+          flexShrink: 0
+        }}
+      >
       {/* CSS Styles injection for professional dynamic visual polish */}
       <style>{`
         @keyframes metallic-sweep {
@@ -803,6 +846,7 @@ export default function TVDisplay({
           <span>Support Desk: {companyConfig?.contactNumber || '+91 99999 88888'}</span>
         </div>
       </div>
+    </div>
     </div>
   );
 }

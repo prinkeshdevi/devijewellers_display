@@ -73,18 +73,19 @@ import {
 } from 'lucide-react';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<string>('admin_dashboard');
+  const isStandaloneTvDisplay = window.location.pathname.toLowerCase().includes('/tvdisplay') || window.location.search.toLowerCase().includes('tvdisplay');
+  const [activeTab, setActiveTab] = useState<string>(isStandaloneTvDisplay ? 'tv_display' : 'admin_dashboard');
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
-  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState<boolean>(true);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState<boolean>(!isStandaloneTvDisplay);
 
   // Auto-hide desktop sidebar when entering TV Display mode
   useEffect(() => {
-    if (activeTab === 'tv_display') {
+    if (activeTab === 'tv_display' || isStandaloneTvDisplay) {
       setDesktopSidebarOpen(false);
     } else {
       setDesktopSidebarOpen(true);
     }
-  }, [activeTab]);
+  }, [activeTab, isStandaloneTvDisplay]);
 
   // Core persistent states
   const [rates, setRates] = useState<JewelleryRates>(INITIAL_RATES);
@@ -482,7 +483,7 @@ export default function App() {
         );
       case 'tv_display':
         return (
-          <div className="rounded-xl border border-[#D4AF37]/35 overflow-hidden shadow-2xl relative">
+          <div className="w-full h-full bg-black relative">
             <TVDisplay 
               rates={rates}
               trends={trends}
@@ -612,6 +613,14 @@ export default function App() {
     }
   };
 
+  if (isStandaloneTvDisplay) {
+    return (
+      <div className="w-full h-screen bg-black overflow-hidden relative font-sans antialiased">
+        {renderActiveComponent()}
+      </div>
+    );
+  }
+
   return (
     <div id="app-workspace-container" className="min-h-screen bg-[#0B0B0D] text-[#F8F5EE] flex font-sans select-none antialiased">
       
@@ -717,7 +726,7 @@ export default function App() {
       <div className="flex-1 flex flex-col relative w-full h-screen overflow-hidden">
         
         {/* Floating Hamburger icon for Desktop TV Display mode */}
-        {!desktopSidebarOpen && (
+        {!desktopSidebarOpen && !isStandaloneTvDisplay && (
           <button 
             onClick={() => setSidebarOpen(true)}
             className="hidden lg:flex fixed top-4 left-4 z-[9999] p-3 bg-black/80 backdrop-blur border border-[#D4AF37] rounded-lg text-[#D4AF37] shadow-xl hover:bg-zinc-800 transition-all opacity-60 hover:opacity-100"
@@ -747,7 +756,7 @@ export default function App() {
         )}
 
         {/* WORK SURFACE SCROLLER */}
-        <main className={`flex-1 overflow-y-auto ${activeTab === 'tv_display' ? 'pb-0' : 'pb-16'}`}>
+        <main className={`flex-1 ${activeTab === 'tv_display' ? 'overflow-hidden pb-0 bg-black' : 'overflow-y-auto pb-16'}`}>
           <div className="w-full mx-auto animate-fade-in h-full relative">
             {renderActiveComponent()}
           </div>
