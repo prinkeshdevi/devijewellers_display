@@ -615,7 +615,7 @@ export default function App() {
 
   if (isStandaloneTvDisplay) {
     return (
-      <div className="w-full h-[100dvh] bg-black overflow-hidden relative font-sans antialiased flex flex-col">
+      <div className="w-full h-screen bg-black overflow-hidden relative font-sans antialiased flex flex-col">
         <TVDisplay 
           rates={rates}
           trends={trends}

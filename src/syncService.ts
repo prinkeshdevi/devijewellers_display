@@ -62,14 +62,14 @@ export const syncRates = async () => {
     let rawSilver = typeof apiData['Silver'] === 'number' ? apiData['Silver'] : parseFloat(apiData['Silver'] || "0");
     let rawPlatinum = typeof apiData['Platinum'] === 'number' ? apiData['Platinum'] : parseFloat(apiData['Platinum'] || "0");
 
+    if (!isNaN(rawSilver)) {
+      rawSilver = rawSilver * 100; // Convert to per kg from API
+    }
+
     if (settings && settings.useManualRates) {
       if (settings.manualGold24k > 0) raw24k = settings.manualGold24k;
       if (settings.manualSilver !== undefined) rawSilver = settings.manualSilver;
       if (settings.manualPlatinum !== undefined) rawPlatinum = settings.manualPlatinum;
-    }
-
-    if (!isNaN(rawSilver)) {
-      rawSilver = rawSilver * 100; // Convert to per kg
     }
 
     if (!raw24k || isNaN(raw24k)) throw new Error("Invalid 24K gold rate from API");
@@ -80,18 +80,18 @@ export const syncRates = async () => {
     const m18kSale = settings.gold18kSaleMult ?? 0.860;
     const m18kPur = settings.gold18kPurMult ?? 0.800;
 
-    const gold24kSale = raw24k;
+    const gold24kSale = Math.round(raw24k);
     const gold24kPurchase = Math.round(gold24kSale * m24kPur);
     const gold22kSale = Math.round(gold24kSale * m22kSale);
     const gold22kPurchase = Math.round(gold24kSale * m22kPur);
     const gold18kSale = Math.round(gold24kSale * m18kSale);
     const gold18kPurchase = Math.round(gold24kSale * m18kPur);
     
-    const silverSale = rawSilver;
-    const silverPurchase = silverSale - settings.silverPurchaseOffset;
+    const silverSale = Math.round(rawSilver);
+    const silverPurchase = Math.round(silverSale - settings.silverPurchaseOffset);
 
-    const platinumSale = rawPlatinum || 0;
-    const platinumPurchase = platinumSale ? platinumSale - settings.platinumPurchaseOffset : 0;
+    const platinumSale = Math.round(rawPlatinum || 0);
+    const platinumPurchase = Math.round(platinumSale ? platinumSale - settings.platinumPurchaseOffset : 0);
 
     const rateData = {
       gold24kSale,

@@ -110,9 +110,7 @@ export default function RateSync({
         body: JSON.stringify(payload)
       });
       triggerSuccess('Calculation & Sync Settings Saved Successfully');
-      if (payload.enableAutoSync) {
-        await syncMarketsApi(); // force a sync to apply
-      }
+      await syncMarketsApi(); // force a sync to apply immediately to any connected displays
       setTimeout(() => window.location.reload(), 1000);
     } catch (e: any) {
       triggerError('Failed to save settings: ' + e.message);
