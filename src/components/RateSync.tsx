@@ -45,9 +45,20 @@ export default function RateSync({
     syncIntervalMinutes: 1,
     silverPurchaseOffset: 5000,
     platinumPurchaseOffset: 4000,
+    gold24kPurMult: 0.985,
+    gold22kSaleMult: 0.920,
+    gold22kPurMult: 0.900,
+    gold18kSaleMult: 0.860,
+    gold18kPurMult: 0.800,
     enableAutoSync: true,
     storeRatesInDb: true
   });
+
+  useEffect(() => {
+    setBaseGold24k(rates.gold24k);
+    setBaseSilver(rates.silver);
+    setBasePlatinum(rates.platinum);
+  }, [rates]);
 
   // Load calculation settings from backend
   useEffect(() => {
@@ -67,8 +78,17 @@ export default function RateSync({
             syncIntervalMinutes: data.syncIntervalMinutes || 1,
             silverPurchaseOffset: data.silverPurchaseOffset || 5000,
             platinumPurchaseOffset: data.platinumPurchaseOffset || 4000,
+            gold24kPurMult: data.gold24kPurMult !== undefined ? data.gold24kPurMult : 0.985,
+            gold22kSaleMult: data.gold22kSaleMult !== undefined ? data.gold22kSaleMult : 0.920,
+            gold22kPurMult: data.gold22kPurMult !== undefined ? data.gold22kPurMult : 0.900,
+            gold18kSaleMult: data.gold18kSaleMult !== undefined ? data.gold18kSaleMult : 0.860,
+            gold18kPurMult: data.gold18kPurMult !== undefined ? data.gold18kPurMult : 0.800,
             enableAutoSync: data.enableAutoSync !== false,
-            storeRatesInDb: data.storeRatesInDb !== false
+            storeRatesInDb: data.storeRatesInDb !== false,
+            useManualRates: data.useManualRates || false,
+            manualGold24k: data.manualGold24k || 150000,
+            manualSilver: data.manualSilver || 250000,
+            manualPlatinum: data.manualPlatinum || 0,
           });
         }
       })
@@ -77,13 +97,20 @@ export default function RateSync({
 
   const saveSettings = async () => {
     try {
+      // Create a payload that also persists the current UI inputs as manual rates
+      const payload = {
+        ...calcSettings,
+        manualGold24k: baseGold24k,
+        manualSilver: baseSilver,
+        manualPlatinum: basePlatinum
+      };
       await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(calcSettings)
+        body: JSON.stringify(payload)
       });
       triggerSuccess('Calculation & Sync Settings Saved Successfully');
-      if (calcSettings.enableAutoSync) {
+      if (payload.enableAutoSync) {
         await syncMarketsApi(); // force a sync to apply
       }
       setTimeout(() => window.location.reload(), 1000);
@@ -179,9 +206,22 @@ export default function RateSync({
       <div className="bg-[#15161A] border border-[#D4AF37]/30 rounded-xl p-6 shadow-2xl relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-64 h-64 bg-[#D4AF37]/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none transition-transform group-hover:scale-110 duration-1000"></div>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-[#D4AF37]/20 pb-4 mb-6 relative z-10">
-          <h2 className="text-xl font-serif font-black text-[#F8F5EE] uppercase tracking-wider flex items-center gap-2">
-            <Zap className="w-5 h-5 text-[#D4AF37]" /> Live Market Rates
-          </h2>
+          <div className="flex flex-col gap-2">
+            <h2 className="text-xl font-serif font-black text-[#F8F5EE] uppercase tracking-wider flex items-center gap-2">
+              <Zap className="w-5 h-5 text-[#D4AF37]" /> Live Market Rates
+            </h2>
+            <label className="flex items-center gap-2 cursor-pointer mt-1 group">
+              <input 
+                type="checkbox" 
+                checked={calcSettings.useManualRates}
+                onChange={(e) => setCalcSettings({...calcSettings, useManualRates: e.target.checked})}
+                className="w-4 h-4 rounded appearance-none border border-zinc-600 checked:bg-[#D4AF37] checked:border-[#D4AF37] relative after:content-[''] after:absolute after:hidden checked:after:block after:left-[5px] after:top-[2px] after:w-[4px] after:h-[8px] after:border-r-2 after:border-b-2 after:border-black after:rotate-45"
+              />
+              <span className="text-xs font-mono font-medium text-emerald-400 group-hover:text-emerald-300 transition-colors">
+                ENABLE MANUAL RATE OVERRIDE (Disconnect from Live API)
+              </span>
+            </label>
+          </div>
           <div className="flex flex-col items-end gap-1 mt-4 md:mt-0">
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex items-center gap-2 text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
@@ -269,14 +309,14 @@ export default function RateSync({
           </h2>
           
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {/* Flat Offsets */}
               <div>
                 <label className="block text-[11px] font-mono text-zinc-300 uppercase tracking-widest mb-1.5 flex justify-between items-center">
                   <span>Silver Pur. Offset</span>
-                  <span className="text-zinc-600 font-normal">flat</span>
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">+</span>
+                  <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">-</span>
                   <input 
                     type="number" 
                     value={calcSettings.silverPurchaseOffset}
@@ -288,14 +328,94 @@ export default function RateSync({
               <div>
                 <label className="block text-[11px] font-mono text-zinc-400 uppercase tracking-widest mb-1.5 flex justify-between items-center">
                   <span>Plat. Pur. Offset</span>
-                  <span className="text-zinc-600 font-normal">flat</span>
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">+</span>
+                  <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">-</span>
                   <input 
                     type="number" 
                     value={calcSettings.platinumPurchaseOffset}
                     onChange={(e)=>setCalcSettings({...calcSettings, platinumPurchaseOffset: parseInt(e.target.value)})}
+                    className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 pl-7 font-mono text-white text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Gold Multipliers */}
+              <div>
+                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
+                  <span>24K Pur. Multiplier</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">×</span>
+                  <input 
+                    type="number" 
+                    step="0.001"
+                    value={calcSettings.gold24kPurMult}
+                    onChange={(e)=>setCalcSettings({...calcSettings, gold24kPurMult: parseFloat(e.target.value) || 0})}
+                    className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 pl-7 font-mono text-white text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
+                  <span>22K Sale Multiplier</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">×</span>
+                  <input 
+                    type="number" 
+                    step="0.001"
+                    value={calcSettings.gold22kSaleMult}
+                    onChange={(e)=>setCalcSettings({...calcSettings, gold22kSaleMult: parseFloat(e.target.value) || 0})}
+                    className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 pl-7 font-mono text-white text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
+                  <span>22K Pur. Multiplier</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">×</span>
+                  <input 
+                    type="number" 
+                    step="0.001"
+                    value={calcSettings.gold22kPurMult}
+                    onChange={(e)=>setCalcSettings({...calcSettings, gold22kPurMult: parseFloat(e.target.value) || 0})}
+                    className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 pl-7 font-mono text-white text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
+                  <span>18K Sale Multiplier</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">×</span>
+                  <input 
+                    type="number" 
+                    step="0.001"
+                    value={calcSettings.gold18kSaleMult}
+                    onChange={(e)=>setCalcSettings({...calcSettings, gold18kSaleMult: parseFloat(e.target.value) || 0})}
+                    className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 pl-7 font-mono text-white text-sm"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-[#D4AF37] uppercase tracking-widest mb-1.5 flex justify-between items-center">
+                  <span>18K Pur. Multiplier</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-zinc-500 font-mono text-sm">×</span>
+                  <input 
+                    type="number" 
+                    step="0.001"
+                    value={calcSettings.gold18kPurMult}
+                    onChange={(e)=>setCalcSettings({...calcSettings, gold18kPurMult: parseFloat(e.target.value) || 0})}
                     className="w-full bg-[#0B0B0D] border border-zinc-700 focus:border-[#D4AF37] rounded p-2.5 pl-7 font-mono text-white text-sm"
                   />
                 </div>
@@ -335,51 +455,51 @@ export default function RateSync({
             {/* ROW 1 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-[#D4AF37]/50 transition-colors">
               <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">24K Sale</span>
-              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(rates.gold24k)}</span>
+              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(baseGold24k)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest">24K Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(rates.gold24kPurchase || 0)}</span>
+              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(Math.round(baseGold24k * calcSettings.gold24kPurMult) || 0)}</span>
             </div>
 
             {/* ROW 2 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-[#D4AF37]/50 transition-colors">
               <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">22K Sale</span>
-              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(rates.gold22k)}</span>
+              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(Math.round(baseGold24k * calcSettings.gold22kSaleMult))}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest">22K Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(rates.gold22kPurchase || 0)}</span>
+              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(Math.round(baseGold24k * calcSettings.gold22kPurMult) || 0)}</span>
             </div>
 
             {/* ROW 3 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-[#D4AF37]/50 transition-colors">
               <span className="font-mono text-xs text-zinc-400 uppercase tracking-widest">18K Sale</span>
-              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(rates.gold18k)}</span>
+              <span className="font-serif font-black text-lg text-[#D4AF37]">{formatPrice(Math.round(baseGold24k * calcSettings.gold18kSaleMult))}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-xs text-zinc-500 uppercase tracking-widest">18K Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(rates.gold18kPurchase || 0)}</span>
+              <span className="font-serif font-bold text-base text-zinc-300">{formatPrice(Math.round(baseGold24k * calcSettings.gold18kPurMult) || 0)}</span>
             </div>
 
             {/* ROW 4 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-400 transition-colors">
               <span className="font-mono text-[11px] text-zinc-400 uppercase tracking-widest">Silver Sale</span>
-              <span className="font-serif font-black text-lg text-zinc-200">{formatPrice(rates.silver, true)}</span>
+              <span className="font-serif font-black text-lg text-zinc-200">{formatPrice(baseSilver, true)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-[11px] text-zinc-500 uppercase tracking-widest">Silver Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-400">{formatPrice(rates.silverPurchase || 0, true)}</span>
+              <span className="font-serif font-bold text-base text-zinc-400">{formatPrice(baseSilver - calcSettings.silverPurchaseOffset || 0, true)}</span>
             </div>
 
             {/* ROW 5 */}
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-400 transition-colors">
               <span className="font-mono text-[11px] text-zinc-400 uppercase tracking-widest">Plat. Sale</span>
-              <span className="font-serif font-black text-lg text-zinc-300">{formatPrice(rates.platinum)}</span>
+              <span className="font-serif font-black text-lg text-zinc-300">{formatPrice(basePlatinum)}</span>
             </div>
             <div className="bg-[#0B0B0D] border border-zinc-800 p-3.5 rounded flex justify-between items-center group hover:border-zinc-500 transition-colors">
               <span className="font-mono text-[11px] text-zinc-500 uppercase tracking-widest">Plat. Purchase</span>
-              <span className="font-serif font-bold text-base text-zinc-400">{formatPrice(rates.platinumPurchase || 0)}</span>
+              <span className="font-serif font-bold text-base text-zinc-400">{formatPrice(basePlatinum - calcSettings.platinumPurchaseOffset || 0)}</span>
             </div>
           </div>
         </div>

@@ -164,6 +164,11 @@ apiRouter.get("/init-db", async (req, res) => {
     await db.execute(sql`
       ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS store_rates_in_db BOOLEAN NOT NULL DEFAULT true;
     `).catch(() => {});
+    await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.985;`).catch(() => {});
+    await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold22k_sale_mult DOUBLE PRECISION NOT NULL DEFAULT 0.920;`).catch(() => {});
+    await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold22k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.900;`).catch(() => {});
+    await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold18k_sale_mult DOUBLE PRECISION NOT NULL DEFAULT 0.860;`).catch(() => {});
+    await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold18k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.800;`).catch(() => {});
 
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS global_state (
@@ -203,10 +208,20 @@ apiRouter.get("/settings", async (req, res) => {
   try {
     let current = await db.select().from(calculationSettings).limit(1).catch(async e => {
       console.warn("Retrying settings (auto-migrating)...");
-      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS enable_auto_sync BOOLEAN NOT NULL DEFAULT true;`).catch(() => {});
-      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS store_rates_in_db BOOLEAN NOT NULL DEFAULT true;`).catch(() => {});
+      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS enable_auto_sync BOOLEAN NOT NULL DEFAULT true;`).catch(console.error);
+      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS store_rates_in_db BOOLEAN NOT NULL DEFAULT true;`).catch(console.error);
+      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.985;`).catch(console.error);
+      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold22k_sale_mult DOUBLE PRECISION NOT NULL DEFAULT 0.920;`).catch(console.error);
+      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold22k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.900;`).catch(console.error);
+      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold18k_sale_mult DOUBLE PRECISION NOT NULL DEFAULT 0.860;`).catch(console.error);
+      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold18k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.800;`).catch(console.error);
+      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS use_manual_rates BOOLEAN NOT NULL DEFAULT false;`).catch(console.error);
+      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS manual_gold24k INTEGER NOT NULL DEFAULT 150000;`).catch(console.error);
+      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS manual_silver INTEGER NOT NULL DEFAULT 250000;`).catch(console.error);
+      await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS manual_platinum INTEGER NOT NULL DEFAULT 0;`).catch(console.error);
       return await db.select().from(calculationSettings).limit(1);
     });
+    console.log("Settings keys:", current[0] ? Object.keys(current[0]) : "No settings row");
     res.json(current[0] || { syncIntervalMinutes: 1, silverPurchaseOffset: 5000, platinumPurchaseOffset: 4000, enableAutoSync: true });
   } catch (err: any) {
     const rootCause = err.cause ? String(err.cause) : err.stack;
@@ -224,6 +239,15 @@ apiRouter.post("/settings", async (req, res) => {
         console.warn("Attempting auto-migration on settings post due to error:", e);
         await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS enable_auto_sync BOOLEAN NOT NULL DEFAULT true;`).catch(() => {});
         await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS store_rates_in_db BOOLEAN NOT NULL DEFAULT true;`).catch(() => {});
+        await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold24k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.985;`).catch(() => {});
+        await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold22k_sale_mult DOUBLE PRECISION NOT NULL DEFAULT 0.920;`).catch(() => {});
+        await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold22k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.900;`).catch(() => {});
+        await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold18k_sale_mult DOUBLE PRECISION NOT NULL DEFAULT 0.860;`).catch(() => {});
+        await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS gold18k_pur_mult DOUBLE PRECISION NOT NULL DEFAULT 0.800;`).catch(() => {});
+        await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS use_manual_rates BOOLEAN NOT NULL DEFAULT false;`).catch(() => {});
+        await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS manual_gold24k INTEGER NOT NULL DEFAULT 150000;`).catch(() => {});
+        await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS manual_silver INTEGER NOT NULL DEFAULT 250000;`).catch(() => {});
+        await db.execute(sql`ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS manual_platinum INTEGER NOT NULL DEFAULT 0;`).catch(() => {});
         
         await db.insert(calculationSettings).values({ id: 1, ...req.body }).onConflictDoUpdate({
           target: calculationSettings.id,

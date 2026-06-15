@@ -299,7 +299,7 @@ export default function TVDisplay({
   return (
     <div 
       id="tv-display-root"
-      className={`w-full text-[#F8F5EE] select-none h-screen flex flex-col justify-between font-poppins transition-all duration-700 p-2 relative overflow-hidden ${isRotatingBgActive ? 'bg-black' : themeBg}`}
+      className={`w-full text-[#F8F5EE] select-none h-full flex flex-col justify-between font-poppins transition-all duration-700 p-2 relative overflow-hidden ${isRotatingBgActive ? 'bg-black' : themeBg}`}
       style={{ 
         backgroundColor: isRotatingBgActive ? 'transparent' : (customPrimaryBg || undefined),
         borderColor: customGoldColor ? `${customGoldColor}30` : undefined
@@ -420,12 +420,9 @@ export default function TVDisplay({
 
       {/* Background Decorative Art Deco Elements for Premium Luxury Look */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:16px_16px]"></div>
-      
-      {/* Outer borders */}
-      <div className="absolute inset-4 pointer-events-none border border-double border-[#D4AF37]/10 rounded-sm"></div>
 
       {/* HEADER SECTION */}
-      <div id="tv-header" className="flex flex-col sm:flex-row justify-between items-center border-b border-[#D4AF37]/30 pb-1 mb-1 relative z-10 gap-2 shrink-0">
+      <div id="tv-header" className="flex flex-col sm:flex-row justify-between items-center pb-1 mb-1 relative z-10 gap-2 shrink-0">
         
         {/* Dynamic Display Mode Badges (Non-obtrusive but informative branding) */}
         <div className="flex flex-1 justify-start">
@@ -518,17 +515,24 @@ export default function TVDisplay({
                         {/* Horizontal Connecting Line behind */}
                         <div className={`absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 opacity-50 ${bgAccentLine} z-0 rounded-full`} />
                         
-                        {/* Rate Box Shape Container */}
-                        <div className="relative w-full h-full filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
-                          
-                          {/* Border Layer (Gold/Accent) */}
-                          <div className={`clip-hexagon absolute inset-0 ${bgAccentLine} flex items-center justify-center`}>
-                             {/* Extra glow layer for top edge visual */}
-                             <div className="absolute top-0 left-0 right-0 h-[2px] bg-white opacity-40" />
-                          </div>
-                          
-                          {/* Inner Fill Layer */}
-                          <div className={`clip-hexagon absolute inset-[1.5px] md:inset-[2px] z-0 overflow-hidden ${themeCard.split(' ')[0]}`}>
+                          {/* Rate Box Shape Container */}
+                          <div className="relative w-full h-full filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+                            
+                            {/* SVG PERFECT BORDER FOR SHAPE */}
+                            <svg className="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 100 100" preserveAspectRatio="none">
+                              <path 
+                                d="M 8 0 L 92 0 C 97 0, 100 35, 100 50 C 100 65, 97 100, 92 100 L 8 100 C 3 100, 0 65, 0 50 C 0 35, 3 0, 8 0 Z" 
+                                fill="none" 
+                                className={customGoldColor ? '' : 'stroke-[#D4AF37]'}
+                                style={customGoldColor ? { stroke: customGoldColor } : {}}
+                                vectorEffect="non-scaling-stroke"
+                                strokeWidth={3}
+                                opacity={0.9}
+                              />
+                            </svg>
+                            
+                            {/* Inner Fill Layer */}
+                            <div className={`clip-hexagon absolute inset-0 z-0 overflow-hidden ${themeCard.split(' ')[0]}`}>
                             {/* Inner Shine Center Glow */}
                             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.12)_0%,transparent_70%)] pointer-events-none" />
                             {/* Animated Sweep */}
@@ -537,7 +541,7 @@ export default function TVDisplay({
                           </div>
 
                           {/* Content Layer */}
-                          <div className="relative h-full flex-1 z-10 px-6 md:px-12 py-1 md:py-2 flex flex-col items-center justify-center text-center shrink min-h-0">
+                          <div className="relative h-full flex-1 z-10 px-2 md:px-6 py-0.5 md:py-1 flex flex-col items-center justify-center text-center shrink min-h-0">
                             {/* Gold luxury sparkle top-right */}
                             {(item.key === 'gold24k' || item.key === 'gold22k') && (
                               <div className="absolute top-4 left-6 md:left-10 pointer-events-none opacity-50">
@@ -547,10 +551,10 @@ export default function TVDisplay({
 
                             {/* Live indicator removed as requested */}
 
-                            <div className="mb-0 mt-1">
+                            <div className="mb-0 mt-1 flex-1 flex flex-col justify-center min-h-0">
                               <h3 
-                                className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37]"
-                                style={{ fontSize: labelFontSize ? `clamp(16px, ${Math.max(labelFontSize, 20)}px, 4vw)` : 'clamp(20px, 4vw, 36px)' }}
+                                className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37] leading-tight"
+                                style={{ fontSize: labelFontSize ? `clamp(14px, ${Math.max(labelFontSize, 18)}px, min(3.5vw, 4vh))` : 'clamp(14px, min(3.5vw, 4vh), 32px)' }}
                               >
                                 {item.label}
                               </h3>
@@ -559,11 +563,11 @@ export default function TVDisplay({
                             {/* HUGE Rate Typography */}
                             <div className="my-1 flex items-stretch w-full min-h-0 shrink">
                               {/* Left: SALE */}
-                              <div className="flex-1 flex flex-col items-center justify-between px-2">
-                                <span className="text-[12px] md:text-[clamp(14px,1.5vw,23px)] text-[#FFD700] font-poppins uppercase font-black tracking-[0.1em] xl:tracking-[0.2em] border-b border-[#FFD700]/30 pb-1 w-full text-center mb-1">SALE RATE</span>
+                              <div className="flex-1 flex flex-col items-center justify-center px-1">
+                                <span className="text-[10px] md:text-[clamp(10px,1.5vh,16px)] text-[#FFD700] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#FFD700]/30 pb-0.5 w-full text-center mb-0.5">SALE RATE</span>
                                 <span 
-                                  className="text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none gold-gradient"
-                                  style={{ fontSize: rateFontSize ? `clamp(24px, ${Math.max(rateFontSize, 30)}px, 7vw)` : 'clamp(28px, 6vw, 72px)' }}
+                                  className="font-poppins font-black tracking-tight leading-none gold-gradient"
+                                  style={{ fontSize: rateFontSize ? `clamp(18px, ${Math.max(rateFontSize, 24)}px, min(6vw, 7vh))` : 'clamp(18px, min(5vw, 6vh), 64px)' }}
                                 >
                                   {formatPrice(item.value, false)}
                                 </span>
@@ -573,11 +577,11 @@ export default function TVDisplay({
                               <div className="w-[3px] rounded-full bg-[#FFFFFF] opacity-80 shrink-0 my-2"></div>
                               
                               {/* Right: PURCHASE */}
-                              <div className="flex-1 flex flex-col items-center justify-between px-2">
-                                <span className="text-[12px] md:text-[clamp(14px,1.5vw,23px)] text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] xl:tracking-[0.2em] border-b border-zinc-400/30 pb-1 w-full text-center mb-1">PURCHASE RATE</span>
+                              <div className="flex-1 flex flex-col items-center justify-center px-1">
+                                <span className="text-[10px] md:text-[clamp(10px,1.5vh,16px)] text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5">PURCHASE RATE</span>
                                 <span 
-                                  className="text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none text-zinc-300"
-                                  style={{ fontSize: rateFontSize ? `clamp(24px, ${Math.max(rateFontSize, 30)}px, 7vw)` : 'clamp(28px, 6vw, 72px)' }}
+                                  className="font-poppins font-black tracking-tight leading-none text-zinc-300"
+                                  style={{ fontSize: rateFontSize ? `clamp(18px, ${Math.max(rateFontSize, 24)}px, min(6vw, 7vh))` : 'clamp(18px, min(5vw, 6vh), 64px)' }}
                                 >
                                   {formatPrice(item.purchaseValue || (item.value - 200), false)}
                                 </span>
@@ -617,14 +621,21 @@ export default function TVDisplay({
                         {/* Rate Box Shape Container */}
                         <div className="relative w-full h-full filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
                           
-                          {/* Border Layer (Silver/Accent) */}
-                          <div className={`clip-hexagon absolute inset-0 flex items-center justify-center ${item.key === 'silver' ? 'bg-[#ededed]' : bgAccentLine}`}>
-                             {/* Extra glow layer for top edge visual */}
-                             <div className="absolute top-0 left-0 right-0 h-[2px] bg-white opacity-50" />
-                          </div>
+                          {/* SVG PERFECT BORDER FOR SHAPE */}
+                          <svg className="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 100 100" preserveAspectRatio="none">
+                            <path 
+                              d="M 8 0 L 92 0 C 97 0, 100 35, 100 50 C 100 65, 97 100, 92 100 L 8 100 C 3 100, 0 65, 0 50 C 0 35, 3 0, 8 0 Z" 
+                              fill="none" 
+                              className={item.key === 'silver' ? 'stroke-[#ededed]' : (customGoldColor ? '' : 'stroke-[#D4AF37]')}
+                              style={(item.key !== 'silver' && customGoldColor) ? { stroke: customGoldColor } : {}}
+                              vectorEffect="non-scaling-stroke"
+                              strokeWidth={3}
+                              opacity={0.9}
+                            />
+                          </svg>
                           
                           {/* Inner Fill Layer */}
-                          <div className={`clip-hexagon absolute inset-[1.5px] md:inset-[2px] z-0 overflow-hidden ${themeCard.split(' ')[0]}`}>
+                          <div className={`clip-hexagon absolute inset-0 z-0 overflow-hidden ${themeCard.split(' ')[0]}`}>
                             {/* Inner Shine Center Glow */}
                             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.12)_0%,transparent_70%)] pointer-events-none" />
                             {/* Animated Sweep */}
@@ -633,13 +644,13 @@ export default function TVDisplay({
                           </div>
 
                           {/* Content Layer */}
-                          <div className="relative h-full flex-1 z-10 px-6 md:px-12 py-1 md:py-2 flex flex-col items-center justify-center text-center shrink min-h-0">
+                          <div className="relative h-full flex-1 z-10 px-2 md:px-6 py-0.5 md:py-1 flex flex-col items-center justify-center text-center shrink min-h-0">
                             {/* Live indicator removed as requested */}
 
-                            <div className="mb-0 mt-1">
+                            <div className="mb-0 mt-1 flex-1 flex flex-col justify-center min-h-0">
                               <h3 
-                                className={`font-poppins font-bold uppercase tracking-widest ${item.key === 'silver' ? 'text-[#ededed]' : 'text-[#E5E4E2]'}`}
-                                style={{ fontSize: labelFontSize ? `clamp(16px, ${Math.max(labelFontSize, 20)}px, 4vw)` : 'clamp(20px, 4vw, 36px)' }}
+                                className={`font-poppins font-bold uppercase tracking-widest leading-tight ${item.key === 'silver' ? 'text-[#ededed]' : 'text-[#E5E4E2]'}`}
+                                style={{ fontSize: labelFontSize ? `clamp(14px, ${Math.max(labelFontSize, 18)}px, min(3.5vw, 4vh))` : 'clamp(14px, min(3.5vw, 4vh), 32px)' }}
                               >
                                 {item.label}
                               </h3>
@@ -648,15 +659,15 @@ export default function TVDisplay({
                             {/* HUGE Rate Typography */}
                             <div className="my-1 flex items-stretch w-full min-h-0 shrink">
                               {/* Left: SALE */}
-                              <div className="flex-1 flex flex-col items-center justify-between px-2">
-                                <span className="text-[12px] md:text-[clamp(14px,1.5vw,23px)] text-[#E5E4E2] font-poppins uppercase font-black tracking-[0.1em] xl:tracking-[0.2em] border-b border-[#E5E4E2]/30 pb-1 w-full text-center mb-1">SALE RATE</span>
+                              <div className="flex-1 flex flex-col items-center justify-center px-1">
+                                <span className="text-[10px] md:text-[clamp(10px,1.5vh,16px)] text-[#E5E4E2] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#E5E4E2]/30 pb-0.5 w-full text-center mb-0.5">SALE RATE</span>
                                 <span 
-                                  className={`text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none ${
+                                  className={`font-poppins font-black tracking-tight leading-none ${
                                     item.key === 'silver' 
                                       ? 'text-[#ededed]' 
                                       : 'text-[#E5E4E2]'
                                   }`}
-                                  style={{ fontSize: rateFontSize ? `clamp(24px, ${Math.max(rateFontSize, 26)}px, 7vw)` : 'clamp(26px, 6vw, 64px)' }}
+                                  style={{ fontSize: rateFontSize ? `clamp(18px, ${Math.max(rateFontSize, 24)}px, min(6vw, 7vh))` : 'clamp(18px, min(5vw, 6vh), 56px)' }}
                                 >
                                   {formatPrice(item.value, isSilver)}
                                 </span>
@@ -666,11 +677,11 @@ export default function TVDisplay({
                               <div className="w-[3px] rounded-full bg-[#FFFFFF] opacity-80 shrink-0 my-2"></div>
                               
                               {/* Right: PURCHASE */}
-                              <div className="flex-1 flex flex-col items-center justify-between px-2">
-                                <span className="text-[12px] md:text-[clamp(14px,1.5vw,23px)] text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] xl:tracking-[0.2em] border-b border-zinc-400/30 pb-1 w-full text-center mb-1">PURCHASE RATE</span>
+                              <div className="flex-1 flex flex-col items-center justify-center px-1">
+                                <span className="text-[10px] md:text-[clamp(10px,1.5vh,16px)] text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5">PURCHASE RATE</span>
                                 <span 
-                                  className={`text-[22px] md:text-3xl lg:text-4xl font-poppins font-black tracking-tight leading-none ${item.key === 'silver' ? 'text-[#ededed]' : 'text-zinc-400'}`}
-                                  style={{ fontSize: rateFontSize ? `clamp(24px, ${Math.max(rateFontSize, 26)}px, 7vw)` : 'clamp(26px, 6vw, 64px)' }}
+                                  className={`font-poppins font-black tracking-tight leading-none ${item.key === 'silver' ? 'text-[#ededed]' : 'text-zinc-400'}`}
+                                  style={{ fontSize: rateFontSize ? `clamp(18px, ${Math.max(rateFontSize, 24)}px, min(6vw, 7vh))` : 'clamp(18px, min(5vw, 6vh), 56px)' }}
                                 >
                                   {formatPrice(item.purchaseValue || (item.value - 2), isSilver)}
                                 </span>
@@ -784,7 +795,7 @@ export default function TVDisplay({
 
 
       {/* FOOTER METADATA ZONE */}
-      <div id="tv-footer" className="mt-1 flex flex-col sm:flex-row justify-between items-center text-[9px] md:text-[10px] text-zinc-500 font-poppins border-t border-[#D4AF37]/30 pt-1 gap-1">
+      <div id="tv-footer" className="mt-1 flex flex-col sm:flex-row justify-between items-center text-[9px] md:text-[10px] text-zinc-500 font-poppins pt-1 gap-1">
         <div className="flex items-center gap-3">
           <span>🛡️ Government Approved Hallmark</span>
           <span className="text-zinc-700">•</span>

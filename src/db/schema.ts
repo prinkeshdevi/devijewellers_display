@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { boolean, integer, numeric, pgTable, serial, text, timestamp, jsonb } from 'drizzle-orm/pg-core';
+import { boolean, integer, numeric, pgTable, serial, text, timestamp, jsonb, doublePrecision } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -52,8 +52,17 @@ export const calculationSettings = pgTable('calculation_settings', {
   syncIntervalMinutes: integer('sync_interval_minutes').notNull().default(1),
   silverPurchaseOffset: integer('silver_purchase_offset').notNull().default(5000),
   platinumPurchaseOffset: integer('platinum_purchase_offset').notNull().default(4000),
+  gold24kPurMult: doublePrecision('gold24k_pur_mult').notNull().default(0.985),
+  gold22kSaleMult: doublePrecision('gold22k_sale_mult').notNull().default(0.920),
+  gold22kPurMult: doublePrecision('gold22k_pur_mult').notNull().default(0.900),
+  gold18kSaleMult: doublePrecision('gold18k_sale_mult').notNull().default(0.860),
+  gold18kPurMult: doublePrecision('gold18k_pur_mult').notNull().default(0.800),
   enableAutoSync: boolean('enable_auto_sync').notNull().default(true),
   storeRatesInDb: boolean('store_rates_in_db').notNull().default(true),
+  useManualRates: boolean('use_manual_rates').notNull().default(false),
+  manualGold24k: integer('manual_gold24k').notNull().default(150000),
+  manualSilver: integer('manual_silver').notNull().default(250000),
+  manualPlatinum: integer('manual_platinum').notNull().default(0),
   updatedAt: timestamp('updated_at').defaultNow(),
 });
 
