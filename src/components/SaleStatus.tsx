@@ -254,20 +254,20 @@ export default function SaleStatus({
     // Custom Header Title
     ctx.textAlign = 'center';
     ctx.fillStyle = accentColor;
-    ctx.font = "bold 50px 'Playfair Display', Serif";
+    ctx.font = "bold 50px 'Poppins', sans-serif";
     ctx.letterSpacing = "6px";
     ctx.fillText(`${headerTitle || 'BULLION RATES'}`.toUpperCase(), 600, 310);
 
     // Branch Name
     ctx.fillStyle = textColor;
-    ctx.font = "bold 32px 'Poppins', Sans-serif";
+    ctx.font = "bold 32px 'Poppins', sans-serif";
     ctx.letterSpacing = "4px";
     ctx.fillText(`${activeBranchName.toUpperCase()}`, 600, 360);
 
     // 5. Time Block
     ctx.textAlign = 'center';
     ctx.fillStyle = mutedTextColor;
-    ctx.font = "italic 24px 'Poppins', Sans-serif";
+    ctx.font = "italic 24px 'Poppins', sans-serif";
     ctx.letterSpacing = "2px";
     ctx.fillText(`${currentTime ? currentTime.split(',')[0] : new Date().toDateString()}`, 600, 420);
 
@@ -287,7 +287,7 @@ export default function SaleStatus({
     ctx.strokeRect(150, 520, 900, 50);
 
     ctx.fillStyle = accentColor;
-    ctx.font = "bold 22px 'Poppins', Sans-Serif";
+    ctx.font = "bold 22px 'Poppins', sans-serif";
     ctx.textAlign = 'left';
     ctx.fillText("METAL PURITY CATEGORY", 180, 552);
     ctx.textAlign = 'right';
@@ -315,12 +315,12 @@ export default function SaleStatus({
 
       // Label & Sub labels
       ctx.fillStyle = textColor;
-      ctx.font = "bold 64px 'Playfair Display', Serif";
+      ctx.font = "bold 64px 'Poppins', sans-serif";
       ctx.textAlign = 'left';
       ctx.fillText(item.label, 150, currentY + 20);
 
       ctx.fillStyle = mutedTextColor;
-      ctx.font = "32px 'Poppins', Sans-serif";
+      ctx.font = "32px 'Poppins', sans-serif";
       ctx.fillText(item.sub, 150, currentY + 68);
 
       // Value column
@@ -328,7 +328,7 @@ export default function SaleStatus({
       valGrad.addColorStop(0, '#FFFFFF');
       valGrad.addColorStop(1, accentColor);
       ctx.fillStyle = valGrad;
-      ctx.font = "900 76px 'JetBrains Mono', Monospace";
+      ctx.font = "900 76px 'Poppins', sans-serif";
       ctx.textAlign = 'right';
       ctx.fillText(item.val, 1050, currentY + 38);
 
@@ -345,12 +345,12 @@ export default function SaleStatus({
     ctx.stroke();
 
     ctx.fillStyle = accentColor;
-    ctx.font = "16px 'Poppins', Sans-Serif";
+    ctx.font = "16px 'Poppins', sans-serif";
     ctx.textAlign = 'center';
     ctx.fillText(`Contact: ${activeBranchContact}`, 600, footerY + 40);
 
     ctx.fillStyle = mutedTextColor;
-    ctx.font = "italic 15px 'Poppins', Sans-Serif";
+    ctx.font = "italic 15px 'Poppins', sans-serif";
     ctx.fillText(customRatesNote, 600, footerY + 75);
 
     return canvas;

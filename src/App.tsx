@@ -73,7 +73,7 @@ import {
 } from 'lucide-react';
 
 export default function App() {
-  const isStandaloneTvDisplay = window.location.pathname.toLowerCase().includes('/tvdisplay') || window.location.search.toLowerCase().includes('tvdisplay');
+  const isStandaloneTvDisplay = window.location.pathname.toLowerCase().includes('/tvdisplay') || window.location.pathname.toLowerCase().includes('/tv-display') || window.location.search.toLowerCase().includes('tvdisplay');
   const [activeTab, setActiveTab] = useState<string>(isStandaloneTvDisplay ? 'tv_display' : 'admin_dashboard');
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState<boolean>(!isStandaloneTvDisplay);
@@ -483,7 +483,7 @@ export default function App() {
         );
       case 'tv_display':
         return (
-          <div className="w-full h-full bg-black relative">
+          <div className="rounded-xl border border-[#D4AF37]/35 overflow-hidden shadow-2xl relative">
             <TVDisplay 
               rates={rates}
               trends={trends}
@@ -616,7 +616,18 @@ export default function App() {
   if (isStandaloneTvDisplay) {
     return (
       <div className="w-full h-screen bg-black overflow-hidden relative font-sans antialiased">
-        {renderActiveComponent()}
+        <TVDisplay 
+          rates={rates}
+          trends={trends}
+          mode={displaySetting.mode}
+          theme={displaySetting.theme}
+          tickerText={displaySetting.tickerText}
+          media={media}
+          announcementText={displaySetting.announcements}
+          customPrimaryBg={displaySetting.customPrimaryBg}
+          customGoldColor={displaySetting.customGoldColor}
+          customCardBg={displaySetting.customCardBg}
+        />
       </div>
     );
   }

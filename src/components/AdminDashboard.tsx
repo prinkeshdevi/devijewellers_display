@@ -153,7 +153,8 @@ export default function AdminDashboard({
     setSaveSuccess(true);
     setTimeout(() => {
       setSaveSuccess(false);
-    }, 3500);
+      window.location.reload();
+    }, 1500);
   };
 
   const handleResetToPresetTheme = (preset: DisplayTheme) => {
