@@ -99,7 +99,7 @@ export const syncRates = async () => {
       // Check if rates actually changed
       let hasChanged = true;
       try {
-        const lastRateResult = await db.select().from(rates).where(eq(rates.id, 1)).limit(1);
+        const lastRateResult = await db.select().from(rates).orderBy(desc(rates.id)).limit(1);
         if (lastRateResult.length > 0) {
           const lastRate = lastRateResult[0];
           if (
@@ -122,13 +122,19 @@ export const syncRates = async () => {
       }
 
       if (hasChanged) {
-        // Update current rates (always write to id 1)
-        await db.insert(rates)
-          .values({ id: 1, ...rateData })
-          .onConflictDoUpdate({
-            target: rates.id,
-            set: { ...rateData, updatedAt: new Date() }
-          });
+        // Insert new rates as history in rates table
+        await db.insert(rates).values({ ...rateData });
+
+        // Keep only 40 records in rates
+        try {
+          const allRates = await db.select({ id: rates.id }).from(rates).orderBy(desc(rates.id)).limit(40);
+          if (allRates.length === 40) {
+            const oldestIdToKeep = allRates[39].id;
+            await db.delete(rates).where(sql`${rates.id} < ${oldestIdToKeep}`);
+          }
+        } catch (e) {
+          console.error("Failed to prune rates table:", e);
+        }
 
         // History log
         await db.insert(rateHistoryLogs).values({
@@ -146,22 +152,22 @@ export const syncRates = async () => {
         } catch (e) {
           console.error("Failed to prune rate history logs:", e);
         }
+
+        // Sync log success
+        await db.insert(syncLogs).values({
+          status: "success",
+          apiResponse: apiData
+        });
+
+        // Prune syncLogs to 40 entries maximum as well to keep the database clean
+        try {
+          const logs = await db.select({ id: syncLogs.id }).from(syncLogs).orderBy(desc(syncLogs.id)).limit(40);
+          if (logs.length === 40) {
+            const oldestIdToKeep = logs[39].id;
+            await db.delete(syncLogs).where(sql`${syncLogs.id} < ${oldestIdToKeep}`);
+          }
+        } catch (e) {}
       }
-
-      // Sync log success
-      await db.insert(syncLogs).values({
-        status: "success",
-        apiResponse: apiData
-      });
-
-      // Prune syncLogs to 40 entries maximum as well to keep the database clean
-      try {
-        const logs = await db.select({ id: syncLogs.id }).from(syncLogs).orderBy(desc(syncLogs.id)).limit(40);
-        if (logs.length === 40) {
-          const oldestIdToKeep = logs[39].id;
-          await db.delete(syncLogs).where(sql`${syncLogs.id} < ${oldestIdToKeep}`);
-        }
-      } catch (e) {}
     }
 
     // Broadcast via websockets

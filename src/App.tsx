@@ -222,8 +222,8 @@ export default function App() {
         if (contentType && contentType.indexOf("application/json") !== -1) {
           return res.json();
         } else {
-          const text = await res.text();
-          throw new Error("Invalid content-type from /api/rates/current. Output length: " + text.length);
+          console.warn("Invalid content-type from /api/rates/current (proxy or server restarting)");
+          return null;
         }
       })
       .then(received => {
@@ -264,8 +264,8 @@ export default function App() {
           if (contentType && contentType.indexOf("application/json") !== -1) {
             return res.json();
           } else {
-            const text = await res.text();
-            throw new Error("Invalid content-type from /api/rates/current. Output length: " + text.length);
+            console.warn("Invalid content-type from /api/rates/current (proxy or server restarting)");
+            return null;
           }
         })
         .then(received => {

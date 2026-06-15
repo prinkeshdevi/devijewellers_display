@@ -1,6 +1,6 @@
 import express from "express";
 import { syncRates, latestRatesInMemory, lastSyncAttemptAt } from "./syncService.js";
-import { sql } from 'drizzle-orm';
+import { sql, desc } from 'drizzle-orm';
 import { db } from "./db/index.js";
 import { rates, syncLogs, calculationSettings, globalState } from "./db/schema.js";
 
@@ -29,9 +29,9 @@ apiRouter.get("/rates/current", async (req, res) => {
       return res.json(latestRatesInMemory);
     }
 
-    let current = await db.select().from(rates).limit(1).catch(async (e) => {
+    let current = await db.select().from(rates).orderBy(desc(rates.id)).limit(1).catch(async (e) => {
       console.warn("Retrying rate select due to error:", e);
-      return await db.select().from(rates).limit(1); // retry once
+      return await db.select().from(rates).orderBy(desc(rates.id)).limit(1); // retry once
     });
     
     // Lazy sync check (only if enabled)
@@ -151,9 +151,19 @@ apiRouter.get("/init-db", async (req, res) => {
         sync_interval_minutes INTEGER NOT NULL DEFAULT 1,
         silver_purchase_offset INTEGER NOT NULL DEFAULT 5000,
         platinum_purchase_offset INTEGER NOT NULL DEFAULT 4000,
+        enable_auto_sync BOOLEAN NOT NULL DEFAULT true,
+        store_rates_in_db BOOLEAN NOT NULL DEFAULT true,
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
+    
+    // Auto-migrate newly added columns for existing users
+    await db.execute(sql`
+      ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS enable_auto_sync BOOLEAN NOT NULL DEFAULT true;
+    `).catch(() => {});
+    await db.execute(sql`
+      ALTER TABLE calculation_settings ADD COLUMN IF NOT EXISTS store_rates_in_db BOOLEAN NOT NULL DEFAULT true;
+    `).catch(() => {});
 
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS global_state (
