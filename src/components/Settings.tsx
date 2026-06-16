@@ -56,7 +56,9 @@ export default function SettingsComponent({
   const [ratesDisplayDuration, setRatesDisplayDuration] = useState<number>(displaySetting.ratesDisplayDuration || 12);
   const [slideshowDisplayDuration, setSlideshowDisplayDuration] = useState<number>(displaySetting.slideshowDisplayDuration || 8);
   const [rateFontSize, setRateFontSize] = useState<number>(displaySetting.rateFontSize || 55);
+  const [purchaseRateFontSize, setPurchaseRateFontSize] = useState<number>(displaySetting.purchaseRateFontSize || 55);
   const [labelFontSize, setLabelFontSize] = useState<number>(displaySetting.labelFontSize || 25);
+  const [subLabelFontSize, setSubLabelFontSize] = useState<number>(displaySetting.subLabelFontSize || 10);
   
   const [rotateBackgroundEnabled, setRotateBackgroundEnabled] = useState<boolean>(displaySetting.rotateBackgroundEnabled ?? false);
   const [mediaLoopEnabled, setMediaLoopEnabled] = useState<boolean>(displaySetting.mediaLoopEnabled ?? true);
@@ -144,7 +146,9 @@ export default function SettingsComponent({
       ratesDisplayDuration,
       slideshowDisplayDuration,
       rateFontSize,
+      purchaseRateFontSize,
       labelFontSize,
+      subLabelFontSize,
       rotateBackgroundEnabled,
       mediaLoopEnabled,
       customPrimaryBg,
@@ -287,31 +291,53 @@ export default function SettingsComponent({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
               <div className="flex flex-col gap-2 bg-[#0B0B0D] p-3 rounded border border-zinc-800">
                 <div className="flex justify-between items-center text-[10px] uppercase font-mono text-zinc-400">
-                  <span>Rate Value Font Size</span>
-                  <span className="text-[#D4AF37] font-bold">{rateFontSize} px</span>
+                  <span>Sale Rate Size <span className="text-[#D4AF37] lowercase">(px)</span></span>
                 </div>
                 <input 
-                  type="range" min={20} max={120} value={rateFontSize} 
-                  onChange={(e) => setRateFontSize(parseInt(e.target.value))}
-                  className="w-full accent-[#D4AF37] bg-zinc-800 h-1.5 rounded-lg outline-none"
+                  type="number" min={10} value={rateFontSize} 
+                  onChange={(e) => setRateFontSize(parseInt(e.target.value) || 20)}
+                  className="w-full bg-zinc-900 border border-zinc-800 text-white text-sm p-1.5 rounded outline-none focus:border-[#D4AF37]"
                 />
-                <p className="text-[9px] text-zinc-500 leading-tight">Size of the price figures (e.g. 7,500).</p>
+                <p className="text-[9px] text-zinc-500 leading-tight">Size of the sale price (e.g. 7,500).</p>
               </div>
 
               <div className="flex flex-col gap-2 bg-[#0B0B0D] p-3 rounded border border-zinc-800">
                 <div className="flex justify-between items-center text-[10px] uppercase font-mono text-zinc-400">
-                  <span>Rate Label Font Size</span>
-                  <span className="text-[#D4AF37] font-bold">{labelFontSize} px</span>
+                  <span>Purchase Rate Size <span className="text-[#D4AF37] lowercase">(px)</span></span>
                 </div>
                 <input 
-                  type="range" min={12} max={60} value={labelFontSize} 
-                  onChange={(e) => setLabelFontSize(parseInt(e.target.value))}
-                  className="w-full accent-[#D4AF37] bg-zinc-800 h-1.5 rounded-lg outline-none"
+                  type="number" min={10} value={purchaseRateFontSize} 
+                  onChange={(e) => setPurchaseRateFontSize(parseInt(e.target.value) || 20)}
+                  className="w-full bg-zinc-900 border border-zinc-800 text-white text-sm p-1.5 rounded outline-none focus:border-[#D4AF37]"
+                />
+                <p className="text-[9px] text-zinc-500 leading-tight">Size of the purchase price (e.g. 7,300).</p>
+              </div>
+
+              <div className="flex flex-col gap-2 bg-[#0B0B0D] p-3 rounded border border-zinc-800">
+                <div className="flex justify-between items-center text-[10px] uppercase font-mono text-zinc-400">
+                  <span>Rate Label Font Size <span className="text-[#D4AF37] lowercase">(px)</span></span>
+                </div>
+                <input 
+                  type="number" min={10} value={labelFontSize} 
+                  onChange={(e) => setLabelFontSize(parseInt(e.target.value) || 12)}
+                  className="w-full bg-zinc-900 border border-zinc-800 text-white text-sm p-1.5 rounded outline-none focus:border-[#D4AF37]"
                 />
                 <p className="text-[9px] text-zinc-500 leading-tight">Size of the metal labels (e.g. GOLD 24K).</p>
+              </div>
+              
+              <div className="flex flex-col gap-2 bg-[#0B0B0D] p-3 rounded border border-zinc-800">
+                <div className="flex justify-between items-center text-[10px] uppercase font-mono text-zinc-400">
+                  <span>Sub-Label Font Size <span className="text-[#D4AF37] lowercase">(px)</span></span>
+                </div>
+                <input 
+                  type="number" min={5} value={subLabelFontSize} 
+                  onChange={(e) => setSubLabelFontSize(parseInt(e.target.value) || 6)}
+                  className="w-full bg-zinc-900 border border-zinc-800 text-white text-sm p-1.5 rounded outline-none focus:border-[#D4AF37]"
+                />
+                <p className="text-[9px] text-zinc-500 leading-tight">Size of the sub labels (e.g. SALE RATE).</p>
               </div>
             </div>
 

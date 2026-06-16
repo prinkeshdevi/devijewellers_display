@@ -515,7 +515,7 @@ export default function App() {
         );
       case 'tv_display':
         return (
-          <div className="rounded-xl border border-[#D4AF37]/35 overflow-hidden shadow-2xl relative">
+          <div className="w-full flex-1 flex flex-col bg-black overflow-hidden relative">
             <TVDisplay 
               rates={rates}
               trends={trends}
@@ -533,9 +533,11 @@ export default function App() {
               customCardBg={displaySetting.customCardBg}
               customGoldColor={displaySetting.customGoldColor}
               rateFontSize={displaySetting.rateFontSize}
+              purchaseRateFontSize={displaySetting.purchaseRateFontSize}
               goldFontSize={displaySetting.goldFontSize}
               silverFontSize={displaySetting.silverFontSize}
               labelFontSize={displaySetting.labelFontSize}
+              subLabelFontSize={displaySetting.subLabelFontSize}
               visibleRates={displaySetting.visibleRates}
               media={media}
               mediaLoopEnabled={displaySetting.mediaLoopEnabled !== false}
@@ -647,7 +649,7 @@ export default function App() {
 
   if (isStandaloneTvDisplay) {
     return (
-      <div className="w-full h-screen bg-black overflow-hidden relative font-sans antialiased flex flex-col">
+      <div className="w-full h-[100dvh] bg-black overflow-hidden relative font-sans antialiased flex flex-col">
         <TVDisplay 
           rates={rates}
           trends={trends}
@@ -665,9 +667,11 @@ export default function App() {
           customCardBg={displaySetting.customCardBg}
           customGoldColor={displaySetting.customGoldColor}
           rateFontSize={displaySetting.rateFontSize}
+          purchaseRateFontSize={displaySetting.purchaseRateFontSize}
           goldFontSize={displaySetting.goldFontSize}
           silverFontSize={displaySetting.silverFontSize}
           labelFontSize={displaySetting.labelFontSize}
+          subLabelFontSize={displaySetting.subLabelFontSize}
           visibleRates={displaySetting.visibleRates}
           media={media}
           mediaLoopEnabled={displaySetting.mediaLoopEnabled !== false}
@@ -681,7 +685,7 @@ export default function App() {
   }
 
   return (
-    <div id="app-workspace-container" className="min-h-screen bg-[#0B0B0D] text-[#F8F5EE] flex font-sans select-none antialiased">
+    <div id="app-workspace-container" className="h-[100dvh] w-full overflow-hidden bg-[#0B0B0D] text-[#F8F5EE] flex font-sans select-none antialiased">
       
       {/* SIDEBAR NAVIGATION WORKSPACE */}
       {/* Desktop Sidebar */}
@@ -815,8 +819,8 @@ export default function App() {
         )}
 
         {/* WORK SURFACE SCROLLER */}
-        <main className={`flex-1 ${activeTab === 'tv_display' ? 'overflow-hidden pb-0 bg-black' : 'overflow-y-auto pb-16'}`}>
-          <div className="w-full mx-auto animate-fade-in h-full relative">
+        <main className={`flex-1 flex flex-col min-h-0 ${activeTab === 'tv_display' ? 'overflow-hidden pb-0 bg-black' : 'overflow-y-auto pb-16'}`}>
+          <div className="w-full mx-auto animate-fade-in flex-1 relative flex flex-col">
             {renderActiveComponent()}
           </div>
         </main>

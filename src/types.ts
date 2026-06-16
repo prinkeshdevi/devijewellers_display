@@ -48,10 +48,12 @@ export interface DisplaySetting {
   refreshInterval: number; // How often to check for rate updates
   ratesDisplayDuration?: number; // How long to show rates before switching to media
   slideshowDisplayDuration?: number; // How long the slide show should remain on screen
-  rateFontSize?: number; // Rate Numbers Font Size in px
+  rateFontSize?: number; // Sale Rate Numbers Font Size in px
+  purchaseRateFontSize?: number; // Purchase Rate Numbers Font Size in px
   goldFontSize?: number; // Gold rate numbers font size
   silverFontSize?: number; // Silver and other metal rate numbers font size
   labelFontSize?: number; // Display labels font size
+  subLabelFontSize?: number; // Sub labels like SALE RATE / PURCHASE RATE font size
   animationSpeed: number;
   showAnnouncement: boolean;
   announcementText: string;

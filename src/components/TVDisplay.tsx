@@ -46,9 +46,11 @@ interface TVDisplayProps {
   customCardBg?: string;
   customGoldColor?: string;
   rateFontSize?: number;
+  purchaseRateFontSize?: number;
   goldFontSize?: number;
   silverFontSize?: number;
   labelFontSize?: number;
+  subLabelFontSize?: number;
   visibleRates?: string[];
   media?: MediaItem[];
   mediaLoopEnabled?: boolean;
@@ -75,9 +77,11 @@ export default function TVDisplay({
   customCardBg,
   customGoldColor,
   rateFontSize,
+  purchaseRateFontSize,
   goldFontSize,
   silverFontSize,
   labelFontSize,
+  subLabelFontSize,
   visibleRates,
   media = [],
   mediaLoopEnabled = true,
@@ -299,7 +303,7 @@ export default function TVDisplay({
   return (
     <div 
       id="tv-display-root"
-      className={`w-full text-[#F8F5EE] select-none h-full flex flex-col justify-between font-poppins transition-all duration-700 p-2 relative overflow-hidden ${isRotatingBgActive ? 'bg-black' : themeBg}`}
+      className={`w-full text-[#F8F5EE] select-none h-full flex flex-col justify-between font-poppins transition-all duration-700 p-0 relative overflow-hidden ${isRotatingBgActive ? 'bg-black' : themeBg}`}
       style={{ 
         backgroundColor: isRotatingBgActive ? 'transparent' : (customPrimaryBg || undefined),
         borderColor: customGoldColor ? `${customGoldColor}30` : undefined
@@ -551,23 +555,25 @@ export default function TVDisplay({
 
                             {/* Live indicator removed as requested */}
 
-                            <div className="mb-0 mt-1 flex-1 flex flex-col justify-center min-h-0">
                               <h3 
-                                className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37] leading-tight"
-                                style={{ fontSize: labelFontSize ? `clamp(14px, ${Math.max(labelFontSize, 18)}px, min(3.5vw, 4vh))` : 'clamp(14px, min(3.5vw, 4vh), 32px)' }}
+                                className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37] leading-none mb-0"
+                                style={{ fontSize: labelFontSize ? `${labelFontSize}px` : 'clamp(14px, min(3.5vw, 4vh), 32px)' }}
                               >
                                 {item.label}
                               </h3>
-                            </div>
-                            
-                            {/* HUGE Rate Typography */}
-                            <div className="my-1 flex items-stretch w-full min-h-0 shrink">
+                              {/* HUGE Rate Typography */}
+                              <div className="flex items-stretch w-full min-h-0 shrink -mt-1 md:-mt-2">
                               {/* Left: SALE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
-                                <span className="text-[10px] md:text-[clamp(10px,1.5vh,16px)] text-[#FFD700] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#FFD700]/30 pb-0.5 w-full text-center mb-0.5">SALE RATE</span>
+                                <span 
+                                  className="text-[#FFD700] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#FFD700]/30 pb-0.5 w-full text-center mb-0.5"
+                                  style={{ fontSize: subLabelFontSize ? `${subLabelFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
+                                >
+                                  SALE RATE
+                                </span>
                                 <span 
                                   className="font-poppins font-black tracking-tight leading-none gold-gradient"
-                                  style={{ fontSize: rateFontSize ? `clamp(18px, ${Math.max(rateFontSize, 24)}px, min(6vw, 7vh))` : 'clamp(18px, min(5vw, 6vh), 64px)' }}
+                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : 'clamp(18px, min(5vw, 6vh), 64px)' }}
                                 >
                                   {formatPrice(item.value, false)}
                                 </span>
@@ -578,10 +584,15 @@ export default function TVDisplay({
                               
                               {/* Right: PURCHASE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
-                                <span className="text-[10px] md:text-[clamp(10px,1.5vh,16px)] text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5">PURCHASE RATE</span>
+                                <span 
+                                  className="text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5"
+                                  style={{ fontSize: subLabelFontSize ? `${subLabelFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
+                                >
+                                  PURCHASE RATE
+                                </span>
                                 <span 
                                   className="font-poppins font-black tracking-tight leading-none text-zinc-300"
-                                  style={{ fontSize: rateFontSize ? `clamp(18px, ${Math.max(rateFontSize, 24)}px, min(6vw, 7vh))` : 'clamp(18px, min(5vw, 6vh), 64px)' }}
+                                  style={{ fontSize: purchaseRateFontSize ? `${purchaseRateFontSize}px` : 'clamp(18px, min(5vw, 6vh), 64px)' }}
                                 >
                                   {formatPrice(item.purchaseValue || (item.value - 200), false)}
                                 </span>
@@ -647,27 +658,29 @@ export default function TVDisplay({
                           <div className="relative h-full flex-1 z-10 px-2 md:px-6 py-0.5 md:py-1 flex flex-col items-center justify-center text-center shrink min-h-0">
                             {/* Live indicator removed as requested */}
 
-                            <div className="mb-0 mt-1 flex-1 flex flex-col justify-center min-h-0">
                               <h3 
-                                className={`font-poppins font-bold uppercase tracking-widest leading-tight ${item.key === 'silver' ? 'text-[#ededed]' : 'text-[#E5E4E2]'}`}
-                                style={{ fontSize: labelFontSize ? `clamp(14px, ${Math.max(labelFontSize, 18)}px, min(3.5vw, 4vh))` : 'clamp(14px, min(3.5vw, 4vh), 32px)' }}
+                                className={`font-poppins font-bold uppercase tracking-widest leading-none mb-0 ${item.key === 'silver' ? 'text-[#ededed]' : 'text-[#E5E4E2]'}`}
+                                style={{ fontSize: labelFontSize ? `${labelFontSize}px` : 'clamp(14px, min(3.5vw, 4vh), 32px)' }}
                               >
                                 {item.label}
                               </h3>
-                            </div>
-
-                            {/* HUGE Rate Typography */}
-                            <div className="my-1 flex items-stretch w-full min-h-0 shrink">
+                              {/* HUGE Rate Typography */}
+                              <div className="flex items-stretch w-full min-h-0 shrink -mt-1 md:-mt-2">
                               {/* Left: SALE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
-                                <span className="text-[10px] md:text-[clamp(10px,1.5vh,16px)] text-[#E5E4E2] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#E5E4E2]/30 pb-0.5 w-full text-center mb-0.5">SALE RATE</span>
+                                <span 
+                                  className="text-[#E5E4E2] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#E5E4E2]/30 pb-0.5 w-full text-center mb-0.5"
+                                  style={{ fontSize: subLabelFontSize ? `${subLabelFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
+                                >
+                                  SALE RATE
+                                </span>
                                 <span 
                                   className={`font-poppins font-black tracking-tight leading-none ${
                                     item.key === 'silver' 
                                       ? 'text-[#ededed]' 
                                       : 'text-[#E5E4E2]'
                                   }`}
-                                  style={{ fontSize: rateFontSize ? `clamp(18px, ${Math.max(rateFontSize, 24)}px, min(6vw, 7vh))` : 'clamp(18px, min(5vw, 6vh), 56px)' }}
+                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : 'clamp(18px, min(5vw, 6vh), 56px)' }}
                                 >
                                   {formatPrice(item.value, isSilver)}
                                 </span>
@@ -678,10 +691,15 @@ export default function TVDisplay({
                               
                               {/* Right: PURCHASE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
-                                <span className="text-[10px] md:text-[clamp(10px,1.5vh,16px)] text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5">PURCHASE RATE</span>
+                                <span 
+                                  className="text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5"
+                                  style={{ fontSize: subLabelFontSize ? `${subLabelFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
+                                >
+                                  PURCHASE RATE
+                                </span>
                                 <span 
                                   className={`font-poppins font-black tracking-tight leading-none ${item.key === 'silver' ? 'text-[#ededed]' : 'text-zinc-400'}`}
-                                  style={{ fontSize: rateFontSize ? `clamp(18px, ${Math.max(rateFontSize, 24)}px, min(6vw, 7vh))` : 'clamp(18px, min(5vw, 6vh), 56px)' }}
+                                  style={{ fontSize: purchaseRateFontSize ? `${purchaseRateFontSize}px` : 'clamp(18px, min(5vw, 6vh), 56px)' }}
                                 >
                                   {formatPrice(item.purchaseValue || (item.value - 2), isSilver)}
                                 </span>
@@ -791,23 +809,6 @@ export default function TVDisplay({
           })()}
         </div>
       )}
-
-
-
-      {/* FOOTER METADATA ZONE */}
-      <div id="tv-footer" className="mt-1 flex flex-col sm:flex-row justify-between items-center text-[9px] md:text-[10px] text-zinc-500 font-poppins pt-1 gap-1">
-        <div className="flex items-center gap-3">
-          <span>🛡️ Government Approved Hallmark</span>
-          <span className="text-zinc-700">•</span>
-          <span>💎 Certified Diamonds</span>
-          <span className="text-zinc-700">•</span>
-          <span>🔄 100% Exchange Guarantee</span>
-        </div>
-        <div className="flex items-center gap-2 text-zinc-400">
-          <PhoneCall className="w-3 h-3 text-[#D4AF37]" />
-          <span>Support Desk: {companyConfig?.contactNumber || '+91 99999 88888'}</span>
-        </div>
-      </div>
     </div>
   );
 }
