@@ -53,7 +53,9 @@ export interface DisplaySetting {
   goldFontSize?: number; // Gold rate numbers font size
   silverFontSize?: number; // Silver and other metal rate numbers font size
   labelFontSize?: number; // Display labels font size
-  subLabelFontSize?: number; // Sub labels like SALE RATE / PURCHASE RATE font size
+  saleTitleFontSize?: number; // SALE RATE title font size
+  purchaseTitleFontSize?: number; // PURCHASE RATE title font size
+  subLabelFontSize?: number; // Deprecated, kept for backward compatibility
   animationSpeed: number;
   showAnnouncement: boolean;
   announcementText: string;

@@ -47,7 +47,6 @@ import RateSync from './components/RateSync';
 import DisplayManager from './components/DisplayManager';
 import ReportsAnalytics from './components/ReportsAnalytics';
 import BranchManager from './components/BranchManager';
-import SettingsComponent from './components/Settings';
 
 // Icons
 import { 
@@ -59,7 +58,6 @@ import {
   Gift, 
   Activity, 
   RefreshCw, 
-  Settings as SettingsIcon, 
   BarChart4, 
   Building2, 
   Users, 
@@ -493,8 +491,7 @@ export default function App() {
     { id: 'media_manager', label: 'Media Signage Desk', icon: Video },
     { id: 'background_manager', label: 'Background Images', icon: Image },
     { id: 'sale_status', label: 'Seasonal Status Tags', icon: Activity },
-    { id: 'branch_manager', label: 'Branch Management', icon: Building2 },
-    { id: 'settings', label: 'Global Settings Desk', icon: SettingsIcon }
+    { id: 'branch_manager', label: 'Branch Management', icon: Building2 }
   ];
 
   const renderActiveComponent = () => {
@@ -508,8 +505,10 @@ export default function App() {
             promos={promos}
             logs={logs}
             displaySetting={displaySetting}
+            systemConfig={systemConfig}
             onNavigate={(tab) => setActiveTab(tab)}
             onUpdateDisplaySetting={handleUpdateDisplaySetting}
+            onUpdateSystemConfig={handleUpdateSystemConfig}
             onTriggerLog={triggerLogRecord}
           />
         );
@@ -537,7 +536,8 @@ export default function App() {
               goldFontSize={displaySetting.goldFontSize}
               silverFontSize={displaySetting.silverFontSize}
               labelFontSize={displaySetting.labelFontSize}
-              subLabelFontSize={displaySetting.subLabelFontSize}
+              saleTitleFontSize={displaySetting.saleTitleFontSize || displaySetting.subLabelFontSize}
+              purchaseTitleFontSize={displaySetting.purchaseTitleFontSize || displaySetting.subLabelFontSize}
               visibleRates={displaySetting.visibleRates}
               media={media}
               mediaLoopEnabled={displaySetting.mediaLoopEnabled !== false}
@@ -632,16 +632,6 @@ export default function App() {
             onTriggerLog={triggerLogRecord}
           />
         );
-      case 'settings':
-        return (
-          <SettingsComponent 
-            displaySetting={displaySetting}
-            onUpdateDisplaySetting={handleUpdateDisplaySetting}
-            systemConfig={systemConfig}
-            onUpdateSystemConfig={handleUpdateSystemConfig}
-            onTriggerLog={triggerLogRecord}
-          />
-        );
       default:
         return null;
     }
@@ -671,7 +661,8 @@ export default function App() {
           goldFontSize={displaySetting.goldFontSize}
           silverFontSize={displaySetting.silverFontSize}
           labelFontSize={displaySetting.labelFontSize}
-          subLabelFontSize={displaySetting.subLabelFontSize}
+          saleTitleFontSize={displaySetting.saleTitleFontSize || displaySetting.subLabelFontSize}
+          purchaseTitleFontSize={displaySetting.purchaseTitleFontSize || displaySetting.subLabelFontSize}
           visibleRates={displaySetting.visibleRates}
           media={media}
           mediaLoopEnabled={displaySetting.mediaLoopEnabled !== false}

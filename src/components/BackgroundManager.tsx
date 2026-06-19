@@ -92,12 +92,8 @@ export default function BackgroundManager({
   const processFile = (file: File) => {
     if (!file) return;
 
-    // Detect media type
-    if (file.type.startsWith('video/')) {
-      setNewType('video');
-    } else {
-      setNewType('banner');
-    }
+    // Keep newType as 'background' for Background Manager
+    setNewType('background');
 
     // Auto-fill title if empty
     if (!newTitle) {
@@ -403,13 +399,13 @@ export default function BackgroundManager({
                       <div className="flex flex-col md:flex-row items-center gap-4 w-full p-2">
                         {/* Thumbnail preview */}
                         <div className="w-24 h-16 rounded overflow-hidden border border-zinc-800 flex-shrink-0 bg-black flex items-center justify-center relative">
-                          {newType === 'video' ? (
+                          {newUrl.match(/\.(mp4|webm|mov)$/i) || newUrl.startsWith('data:video') ? (
                             <video src={newUrl} className="w-full h-full object-cover" muted playsInline />
                           ) : (
                             <img src={newUrl} alt="Thumbnail" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                           )}
                           <div className="absolute bottom-1 right-1 bg-black/80 px-1 py-0.5 rounded text-[8px] font-mono text-zinc-400">
-                            {newType === 'video' ? 'VIDEO' : 'IMAGE'}
+                            {newUrl.match(/\.(mp4|webm|mov)$/i) || newUrl.startsWith('data:video') ? 'VIDEO' : 'IMAGE'}
                           </div>
                         </div>
 
@@ -520,7 +516,7 @@ export default function BackgroundManager({
             
             {/* Asset Image Container */}
             <div className="h-40 bg-[#0B0B0D] relative group overflow-hidden flex items-center justify-center">
-              {item.type === 'video' ? (
+              {item.type === 'video' || item.url.match(/\.(mp4|webm|mov)$/i) || item.url.startsWith('data:video') ? (
                 <video 
                   src={item.url} 
                   className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500 bg-black"
@@ -540,19 +536,9 @@ export default function BackgroundManager({
               <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0D]/90 via-transparent to-transparent"></div>
               
               <div className="absolute top-2 left-2 flex items-center gap-1.5">
-                {item.type === 'banner' ? (
-                  <span className="text-[9px] font-mono uppercase tracking-widest bg-cyan-500/80 text-white px-2 py-0.5 rounded">
-                    Banner
-                  </span>
-                ) : item.type === 'video' ? (
-                  <span className="text-[9px] font-mono uppercase tracking-widest bg-amber-500/80 text-black font-semibold px-2 py-0.5 rounded">
-                    Video Loop
-                  </span>
-                ) : (
-                  <span className="text-[9px] font-mono uppercase tracking-widest bg-purple-500/80 text-white px-2 py-0.5 rounded">
-                    Gallery
-                  </span>
-                )}
+                <span className="text-[9px] font-mono uppercase tracking-widest bg-emerald-700/80 text-white px-2 py-0.5 rounded">
+                  Background
+                </span>
               </div>
 
               {item.active && (
@@ -638,7 +624,7 @@ export default function BackgroundManager({
               <X className="w-4 h-4" />
             </button>
 
-            {previewItem.type === 'video' ? (
+            {previewItem.type === 'video' || previewItem.url.match(/\.(mp4|webm|mov)$/i) || previewItem.url.startsWith('data:video') ? (
               <video 
                 src={previewItem.url} 
                 controls

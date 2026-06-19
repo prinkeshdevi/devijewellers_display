@@ -169,23 +169,23 @@ export const syncRates = async () => {
         } catch (e) {
           console.error("Failed to prune rate history logs:", e);
         }
-
-        // Sync log success
-        await db.insert(syncLogs).values({
-          status: "success",
-          apiResponse: apiData
-        });
-
-        // Prune syncLogs to 40 entries maximum as well to keep the database clean
-        try {
-          const logs = await db.select({ id: syncLogs.id }).from(syncLogs).orderBy(desc(syncLogs.id)).limit(40);
-          if (logs.length === 40) {
-            const oldestIdToKeep = logs[39].id;
-            await db.delete(syncLogs).where(sql`${syncLogs.id} < ${oldestIdToKeep}`);
-          }
-        } catch (e) {}
       }
     }
+
+    // Always log sync success if we attempted and succeeded (just sync)
+    await db.insert(syncLogs).values({
+      status: "success",
+      apiResponse: apiData
+    });
+
+    // Prune syncLogs to 40 entries maximum as well to keep the database clean
+    try {
+      const logs = await db.select({ id: syncLogs.id }).from(syncLogs).orderBy(desc(syncLogs.id)).limit(40);
+      if (logs.length === 40) {
+        const oldestIdToKeep = logs[39].id;
+        await db.delete(syncLogs).where(sql`${syncLogs.id} < ${oldestIdToKeep}`);
+      }
+    } catch (e) {}
 
     // Broadcast via websockets
     if (broadcastCallback) {
@@ -221,18 +221,25 @@ export const syncRates = async () => {
 };
 
 export const startSyncService = async () => {
-  // Run once immediately on startup if auto sync is enabled
-  try {
-    const settings = await db.select().from(calculationSettings).limit(1).catch(() => []);
-    const isAutoSyncEnabled = !settings[0] || settings[0].enableAutoSync !== false;
-    
-    if (isAutoSyncEnabled) {
-      console.log("Starting initial automatic rate sync...");
-      await syncRates();
-    } else {
-      console.log("Automatic rate synchronization is disabled by admin setting. Skipping initial sync.");
+  const scheduleNextSync = async () => {
+    try {
+      const settings = await db.select().from(calculationSettings).limit(1).catch(() => []);
+      const isAutoSyncEnabled = !settings[0] || settings[0].enableAutoSync !== false;
+      const intervalMinutes = settings[0]?.syncIntervalMinutes || 1;
+
+      if (isAutoSyncEnabled) {
+        await syncRates().catch(e => console.error("Interval syncRates failed:", e));
+      }
+
+      if (syncTimer) clearTimeout(syncTimer);
+      syncTimer = setTimeout(scheduleNextSync, intervalMinutes * 60000);
+    } catch (e) {
+      console.error("Scheduler failed, retrying in 1 min:", e);
+      if (syncTimer) clearTimeout(syncTimer);
+      syncTimer = setTimeout(scheduleNextSync, 60000);
     }
-  } catch (e) {
-    console.error("Initial syncRates failed:", e);
-  }
+  };
+
+  // Run initial scheduler
+  scheduleNextSync();
 };

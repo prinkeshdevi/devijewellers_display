@@ -254,9 +254,9 @@ export default function SaleStatus({
     // Custom Header Title
     ctx.textAlign = 'center';
     ctx.fillStyle = accentColor;
-    ctx.font = "bold 50px 'Poppins', sans-serif";
+    ctx.font = "bold 56px 'Playfair Display', serif";
     ctx.letterSpacing = "6px";
-    ctx.fillText(`${headerTitle || 'BULLION RATES'}`.toUpperCase(), 600, 310);
+    ctx.fillText(`${headerTitle || 'DAILY RATES'}`.toUpperCase(), 600, 310);
 
     // Branch Name
     ctx.fillStyle = textColor;
@@ -315,7 +315,7 @@ export default function SaleStatus({
 
       // Label & Sub labels
       ctx.fillStyle = textColor;
-      ctx.font = "bold 50px 'Poppins', sans-serif";
+      ctx.font = "bold 50px 'Playfair Display', serif";
       ctx.textAlign = 'left';
       ctx.fillText(item.label, 180, currentY + 15);
 
@@ -328,7 +328,7 @@ export default function SaleStatus({
       valGrad.addColorStop(0, '#FFFFFF');
       valGrad.addColorStop(1, accentColor);
       ctx.fillStyle = valGrad;
-      ctx.font = "900 64px 'Poppins', sans-serif";
+      ctx.font = "bold 64px 'Playfair Display', serif";
       ctx.textAlign = 'right';
       ctx.fillText(item.val, 1020, currentY + 30);
 
@@ -493,7 +493,7 @@ export default function SaleStatus({
           accent: 'text-[#D4AF37]',
           divider: 'border-[#D4AF37]/35',
           tableHeader: 'bg-[#D4AF37]/10 text-[#D4AF37] border-[#D4AF37]/30',
-          priceText: 'text-[#D4AF37] font-bold font-mono',
+          priceText: 'text-[#D4AF37] font-bold font-serif',
         };
       case 'festival_gold':
         return {
@@ -502,7 +502,7 @@ export default function SaleStatus({
           accent: 'text-[#F4D03F]',
           divider: 'border-[#F4D03F]/30',
           tableHeader: 'bg-[#F4D03F]/15 text-[#F4D03F] border-[#F4D03F]/25',
-          priceText: 'text-[#FFF] font-black tracking-tight font-mono',
+          priceText: 'text-[#FFF] font-black tracking-tight font-serif',
         };
       case 'wedding_gold':
         return {
@@ -511,7 +511,7 @@ export default function SaleStatus({
           accent: 'text-[#FFD700]',
           divider: 'border-[#FFD700]/20',
           tableHeader: 'bg-[#FFD700]/10 text-[#FFD700] border-[#FFD700]/20',
-          priceText: 'text-[#FFD700] font-bold font-mono',
+          priceText: 'text-[#FFD700] font-bold font-serif',
         };
       case 'premium_black':
         return {
@@ -520,7 +520,7 @@ export default function SaleStatus({
           accent: 'text-zinc-100',
           divider: 'border-zinc-800',
           tableHeader: 'bg-[#111111] text-[#D4AF37] border-zinc-800',
-          priceText: 'text-white font-extrabold font-mono',
+          priceText: 'text-white font-extrabold font-serif',
         };
     }
   };

@@ -12,7 +12,8 @@ import {
   AuditLog, 
   DisplaySetting,
   DisplayMode,
-  DisplayTheme
+  DisplayTheme,
+  SystemConfig
 } from '../types';
 import { 
   Tv, 
@@ -43,8 +44,10 @@ interface AdminDashboardProps {
   promos: PromoItem[];
   logs: AuditLog[];
   displaySetting: DisplaySetting;
+  systemConfig: SystemConfig;
   onNavigate: (tab: string) => void;
   onUpdateDisplaySetting: (newSetting: Partial<DisplaySetting>) => void;
+  onUpdateSystemConfig: (config: SystemConfig) => void;
   onTriggerLog: (action: string, details: string) => void;
 }
 
@@ -55,8 +58,10 @@ export default function AdminDashboard({
   promos,
   logs,
   displaySetting,
+  systemConfig,
   onNavigate,
   onUpdateDisplaySetting,
+  onUpdateSystemConfig,
   onTriggerLog
 }: AdminDashboardProps) {
 
@@ -70,9 +75,13 @@ export default function AdminDashboard({
   const [ratesDisplayDuration, setRatesDisplayDuration] = useState<number>(displaySetting.ratesDisplayDuration || 12);
   const [slideshowDisplayDuration, setSlideshowDisplayDuration] = useState<number>(displaySetting.slideshowDisplayDuration || 8);
   const [rateFontSize, setRateFontSize] = useState<number>(displaySetting.rateFontSize || 28);
+  const [purchaseRateFontSize, setPurchaseRateFontSize] = useState<number>(displaySetting.purchaseRateFontSize || 28);
   const [goldFontSize, setGoldFontSize] = useState<number>(displaySetting.goldFontSize || displaySetting.rateFontSize || 28);
   const [silverFontSize, setSilverFontSize] = useState<number>(displaySetting.silverFontSize || displaySetting.rateFontSize || 28);
   const [labelFontSize, setLabelFontSize] = useState<number>(displaySetting.labelFontSize || 12);
+  const [subLabelFontSize, setSubLabelFontSize] = useState<number>(displaySetting.subLabelFontSize || 10);
+  const [saleTitleFontSize, setSaleTitleFontSize] = useState<number>(displaySetting.saleTitleFontSize || displaySetting.subLabelFontSize || 10);
+  const [purchaseTitleFontSize, setPurchaseTitleFontSize] = useState<number>(displaySetting.purchaseTitleFontSize || displaySetting.subLabelFontSize || 10);
   const [mediaLoopEnabled, setMediaLoopEnabled] = useState<boolean>(displaySetting.mediaLoopEnabled !== false);
   const [rotateBackgroundEnabled, setRotateBackgroundEnabled] = useState<boolean>(displaySetting.rotateBackgroundEnabled || false);
   const [visibleRates, setVisibleRates] = useState<string[]>(
@@ -84,6 +93,15 @@ export default function AdminDashboard({
   const [customSecondaryBg, setCustomSecondaryBg] = useState<string>(displaySetting.customSecondaryBg || '#15161A');
   const [customCardBg, setCustomCardBg] = useState<string>(displaySetting.customCardBg || '#161619');
   const [customGoldColor, setCustomGoldColor] = useState<string>(displaySetting.customGoldColor || '#D4AF37');
+
+  // System Config states
+  const [company, setCompany] = useState<string>(systemConfig?.companyName || '');
+  const [contact, setContact] = useState<string>(systemConfig?.contactNumber || '');
+  const [speed, setSpeed] = useState<number>(systemConfig?.tickerSpeed || 50);
+  const [goldUrl, setGoldUrl] = useState<string>(systemConfig?.rateApiUrl || '');
+  const [whatsapp, setWhatsapp] = useState<boolean>(systemConfig?.whatsappAlerts || false);
+  const [email, setEmail] = useState<boolean>(systemConfig?.emailAlerts || false);
+  const [logoImageBase64, setLogoImageBase64] = useState<string>(systemConfig?.logoImageBase64 || '');
 
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
 
@@ -98,9 +116,13 @@ export default function AdminDashboard({
     setRatesDisplayDuration(displaySetting.ratesDisplayDuration || 12);
     setSlideshowDisplayDuration(displaySetting.slideshowDisplayDuration || 8);
     setRateFontSize(displaySetting.rateFontSize || 28);
+    setPurchaseRateFontSize(displaySetting.purchaseRateFontSize || 28);
     setGoldFontSize(displaySetting.goldFontSize || displaySetting.rateFontSize || 28);
     setSilverFontSize(displaySetting.silverFontSize || displaySetting.rateFontSize || 28);
     setLabelFontSize(displaySetting.labelFontSize || 12);
+    setSubLabelFontSize(displaySetting.subLabelFontSize || 10);
+    setSaleTitleFontSize(displaySetting.saleTitleFontSize || displaySetting.subLabelFontSize || 10);
+    setPurchaseTitleFontSize(displaySetting.purchaseTitleFontSize || displaySetting.subLabelFontSize || 10);
     setMediaLoopEnabled(displaySetting.mediaLoopEnabled !== false);
     setRotateBackgroundEnabled(displaySetting.rotateBackgroundEnabled || false);
     setVisibleRates(displaySetting.visibleRates || ['gold24k', 'gold22k', 'gold20k', 'gold18k', 'silver', 'platinum']);
@@ -110,6 +132,18 @@ export default function AdminDashboard({
     setCustomGoldColor(displaySetting.customGoldColor || '#D4AF37');
   }, [displaySetting]);
 
+  useEffect(() => {
+    if (systemConfig) {
+      setCompany(systemConfig.companyName || '');
+      setContact(systemConfig.contactNumber || '');
+      setSpeed(systemConfig.tickerSpeed || 50);
+      setGoldUrl(systemConfig.rateApiUrl || '');
+      setWhatsapp(systemConfig.whatsappAlerts || false);
+      setEmail(systemConfig.emailAlerts || false);
+      setLogoImageBase64(systemConfig.logoImageBase64 || '');
+    }
+  }, [systemConfig]);
+
   const formatPrice = (val: number, isSilver = false) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -118,8 +152,64 @@ export default function AdminDashboard({
     }).format(Math.abs(val || 0));
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+            const maxSize = 400;
+
+            if (width > height) {
+              if (width > maxSize) {
+                height = Math.round(height * (maxSize / width));
+                width = maxSize;
+              }
+            } else {
+              if (height > maxSize) {
+                width = Math.round(width * (maxSize / height));
+                height = maxSize;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              const dataUrl = canvas.toDataURL('image/png', 0.8);
+              setLogoImageBase64(dataUrl);
+            } else {
+               setLogoImageBase64(event.target.result as string);
+            }
+          };
+          img.src = event.target.result as string;
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSaveAllSettings = (e: React.FormEvent) => {
     e.preventDefault();
+
+    const updatedSystemConfig: SystemConfig = {
+      companyName: company.trim().toUpperCase(),
+      logoText: company.split(' ')[0] || 'DEVIJEWELLERS',
+      logoImageBase64: logoImageBase64,
+      contactNumber: contact.trim(),
+      tickerSpeed: speed,
+      rateApiUrl: goldUrl.trim(),
+      whatsappAlerts: whatsapp,
+      emailAlerts: email
+    };
+
+    onUpdateSystemConfig(updatedSystemConfig);
 
     // Call state saver callback
     onUpdateDisplaySetting({
@@ -132,9 +222,13 @@ export default function AdminDashboard({
       ratesDisplayDuration,
       slideshowDisplayDuration,
       rateFontSize,
+      purchaseRateFontSize,
       goldFontSize,
       silverFontSize,
       labelFontSize,
+      subLabelFontSize,
+      saleTitleFontSize,
+      purchaseTitleFontSize,
       customPrimaryBg,
       customSecondaryBg,
       customCardBg,
@@ -146,8 +240,8 @@ export default function AdminDashboard({
 
     // Write audit log trail
     onTriggerLog(
-      'Aesthetics Preferences Updated',
-      `Modified TV node configurations. Gold card font size set to ${goldFontSize}px, silver card font size set to ${silverFontSize}px.`
+      'System & Aesthetics Preferences Updated',
+      `Modified Global configuration, company data, and TV node parameters broadcasted successfully.`
     );
 
     setSaveSuccess(true);
@@ -297,6 +391,52 @@ export default function AdminDashboard({
               <span>All TV Displays updated successfully! Branding and timing parameters broadcasted via Secure TLS.</span>
             </div>
           )}
+
+          {/* Sub-section 0: Showroom Branded Aesthetics */}
+          <div className="flex flex-col gap-4">
+            <h4 className="text-[11px] font-mono uppercase tracking-wider text-[#D4AF37] font-semibold flex items-center gap-2 border-b border-zinc-805/50 pb-1.5">
+              <span>Showroom Branded Aesthetics</span>
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Company Atelier Name (All Caps)</label>
+                <input 
+                  type="text" 
+                  value={company ?? ''}
+                  onChange={(e) => setCompany(e.target.value)}
+                  className="bg-[#0B0B0D] border border-zinc-800 focus:border-[#D4AF37] rounded p-2.5 text-xs font-serif font-bold text-[#F8F5EE] focus:outline-none tracking-wide"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Atelier Desk Helpline Number</label>
+                <input 
+                  type="text" 
+                  value={contact ?? ''}
+                  onChange={(e) => setContact(e.target.value)}
+                  className="bg-[#0B0B0D] border border-zinc-800 focus:border-[#D4AF37] rounded p-2.5 text-xs font-mono text-[#F8F5EE] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Showroom Brand Logo (For App & Posters)</label>
+              <div className="flex items-center gap-4 mt-1">
+                 {logoImageBase64 ? (
+                    <img src={logoImageBase64} alt="Brand Logo" className="h-10 w-auto object-contain bg-black/40 border border-zinc-700 rounded p-1"/>
+                 ) : (
+                    <div className="h-10 w-24 border border-dashed border-zinc-600 rounded bg-black/30 flex items-center justify-center text-[10px] text-zinc-500 font-mono">NO LOGO</div>
+                 )}
+                 <label className="bg-[#15161A] border border-zinc-700 hover:border-[#D4AF37] text-zinc-300 font-mono text-[10px] py-2 px-3 rounded cursor-pointer transition-colors">
+                    UPLOAD / CAPTURE LOGO
+                    <input type="file" className="hidden" accept="image/*" capture="environment" onChange={handleLogoUpload} />
+                 </label>
+                 {logoImageBase64 && (
+                   <button type="button" onClick={() => setLogoImageBase64('')} className="text-red-400 hover:text-red-300 text-[10px] font-mono tracking-widest border border-red-900/30 px-2 py-1 rounded bg-red-900/10">REMOVE</button>
+                 )}
+              </div>
+            </div>
+          </div>
 
           {/* Sub-section 1: Display Configuration */}
           <div className="flex flex-col gap-4">
@@ -580,7 +720,7 @@ export default function AdminDashboard({
               <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
                 <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
                   <span className="text-zinc-400 font-semibold text-[#D4AF37]/90 flex items-center gap-1">
-                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Rate Value Font Size
+                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Sale Rate Value Size
                   </span>
                   <span className="text-[#D4AF37] font-bold">{goldFontSize} px</span>
                 </div>
@@ -598,7 +738,32 @@ export default function AdminDashboard({
                   placeholder="e.g. 28"
                 />
                 <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
-                  Size of the price figures (e.g. ₹ 7,500).
+                  Size of the SALE price figures (e.g. 7,500).
+                </p>
+              </div>
+
+              {/* Purchase Rate Font Size */}
+              <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
+                <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
+                  <span className="text-zinc-400 font-semibold text-[#D4AF37]/90 flex items-center gap-1">
+                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Purchase Rate Value Size
+                  </span>
+                  <span className="text-[#D4AF37] font-bold">{purchaseRateFontSize} px</span>
+                </div>
+                <input
+                  type="number"
+                  min={12}
+                  max={120}
+                  value={purchaseRateFontSize === 0 ? '' : purchaseRateFontSize}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value));
+                    setPurchaseRateFontSize(val);
+                  }}
+                  className="w-full bg-[#141416] text-white border border-zinc-800/80 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] focus:outline-none rounded px-3 py-1.5 text-sm mt-1.5 font-mono"
+                  placeholder="e.g. 28"
+                />
+                <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
+                  Size of the PURCHASE price figures (e.g. 7,300).
                 </p>
               </div>
 
@@ -624,6 +789,77 @@ export default function AdminDashboard({
                 />
                 <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
                   Size of the metal labels (e.g. GOLD 24K).
+                </p>
+              </div>
+
+              {/* Sale Title Size */}
+              <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
+                <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
+                  <span className="text-zinc-400 font-semibold text-[#D4AF37]/90 flex items-center gap-1">
+                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Sale Title Size
+                  </span>
+                  <span className="text-[#D4AF37] font-bold">{saleTitleFontSize} px</span>
+                </div>
+                <input
+                  type="number"
+                  min={5}
+                  max={48}
+                  value={saleTitleFontSize === 0 ? '' : saleTitleFontSize}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value));
+                    setSaleTitleFontSize(val);
+                  }}
+                  className="w-full bg-[#141416] text-white border border-zinc-800/80 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] focus:outline-none rounded px-3 py-1.5 text-sm mt-1.5 font-mono"
+                  placeholder="e.g. 10"
+                />
+                <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
+                  Size of the SALE RATE text.
+                </p>
+              </div>
+
+              {/* Purchase Title Size */}
+              <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
+                <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
+                  <span className="text-zinc-400 font-semibold text-[#D4AF37]/90 flex items-center gap-1">
+                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Purchase Title Size
+                  </span>
+                  <span className="text-[#D4AF37] font-bold">{purchaseTitleFontSize} px</span>
+                </div>
+                <input
+                  type="number"
+                  min={5}
+                  max={48}
+                  value={purchaseTitleFontSize === 0 ? '' : purchaseTitleFontSize}
+                  onChange={(e) => {
+                    const val = e.target.value === '' ? 0 : Math.max(0, parseInt(e.target.value));
+                    setPurchaseTitleFontSize(val);
+                  }}
+                  className="w-full bg-[#141416] text-white border border-zinc-800/80 focus:border-[#D4AF37] focus:ring-1 focus:ring-[#D4AF37] focus:outline-none rounded px-3 py-1.5 text-sm mt-1.5 font-mono"
+                  placeholder="e.g. 10"
+                />
+                <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
+                  Size of the PURCHASE RATE text.
+                </p>
+              </div>
+
+              {/* Marquee Scroll Speed */}
+              <div className="flex flex-col gap-1.5 p-3.5 bg-[#0B0B0D] rounded border border-zinc-800/70 md:col-span-1">
+                <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
+                  <span className="text-zinc-400 font-semibold text-[#D4AF37]/90 flex items-center gap-1">
+                    <Sliders className="w-3 h-3 text-[#D4AF37]" /> Marquee Scroll Duration
+                  </span>
+                  <span className="text-[#D4AF37] font-bold">{speed} s</span>
+                </div>
+                <input 
+                  type="range" 
+                  min={15}
+                  max={90}
+                  value={speed ?? 50} 
+                  onChange={(e) => setSpeed(parseInt(e.target.value))}
+                  className="w-full accent-[#D4AF37] bg-zinc-800 h-1.5 rounded-lg outline-none mt-2"
+                />
+                <p className="text-[9.5px] text-zinc-500 mt-2 leading-snug">
+                  Tuning scroll duration alters the speed of running tickers on active showroom screens.
                 </p>
               </div>
 
@@ -761,6 +997,72 @@ export default function AdminDashboard({
                 ⚠️ System safeguard: At least one active metal price module must remain visible to maintain showrooms service availability.
               </p>
             )}
+          </div>
+
+          {/* Sub-section 5: Automated Communications & Alerts */}
+          <div className="flex flex-col gap-4 mt-2">
+            <h4 className="text-[11px] font-mono uppercase tracking-wider text-[#D4AF37] font-semibold flex items-center gap-2 border-b border-zinc-805/50 pb-1.5">
+              <span>Automated Communications & Alerts</span>
+            </h4>
+
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* WhatsApp alerts switch */}
+              <button
+                type="button"
+                onClick={() => setWhatsapp(!whatsapp)}
+                className={`flex-1 text-left p-3.5 rounded border flex items-center justify-between transition-colors ${
+                  whatsapp 
+                    ? 'border-[#D4AF37]/45 bg-[#D4AF37]/5 text-white' 
+                    : 'border-zinc-800 bg-black/20 text-zinc-500'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded flex items-center justify-center border border-zinc-800 text-emerald-400 font-bold block bg-zinc-900 shadow">W</div>
+                  <div>
+                    <h4 className="text-xs font-bold">WhatsApp Rate Alerts</h4>
+                    <p className="text-[10px] text-zinc-400 mt-0.5">Pushes rate alerts daily directly to VIP client registers.</p>
+                  </div>
+                </div>
+                <div className={`w-3.5 h-3.5 rounded-full border ${whatsapp ? 'bg-[#D4AF37] border-white' : 'bg-transparent border-zinc-700'}`}></div>
+              </button>
+
+              {/* Email alerts switch */}
+              <button
+                type="button"
+                onClick={() => setEmail(!email)}
+                className={`flex-1 text-left p-3.5 rounded border flex items-center justify-between transition-colors ${
+                  email 
+                    ? 'border-[#D4AF37]/45 bg-[#D4AF37]/5 text-white' 
+                    : 'border-zinc-800 bg-black/20 text-zinc-500'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-5 h-5 rounded flex items-center justify-center border border-zinc-800 text-sky-400 font-bold block bg-zinc-900 shadow">@</div>
+                  <div>
+                    <h4 className="text-xs font-bold">Showroom Head Email Reports</h4>
+                    <p className="text-[10px] text-zinc-400 mt-0.5">Mails daily rates variations PDF directly to store logs.</p>
+                  </div>
+                </div>
+                <div className={`w-3.5 h-3.5 rounded-full border ${email ? 'bg-[#D4AF37] border-white' : 'bg-transparent border-zinc-700'}`}></div>
+              </button>
+            </div>
+          </div>
+
+          {/* Sub-section 6: Metal API Servers Mappings */}
+          <div className="flex flex-col gap-4 mt-2">
+            <h4 className="text-[11px] font-mono uppercase tracking-wider text-[#D4AF37] font-semibold flex items-center gap-2 border-b border-zinc-805/50 pb-1.5">
+              <span>Metal API Servers Mappings</span>
+            </h4>
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">Gold/Silver Global API Endpoint</label>
+              <input 
+                type="text" 
+                value={goldUrl ?? ''}
+                onChange={(e) => setGoldUrl(e.target.value)}
+                className="bg-[#0B0B0D] border border-zinc-800 rounded p-2 text-[10px] font-mono text-zinc-300 focus:outline-none focus:border-[#D4AF37] transition-colors"
+                placeholder="https://api.metals.live/v1/spot"
+              />
+            </div>
           </div>
 
           {/* Action Trigger Button */}

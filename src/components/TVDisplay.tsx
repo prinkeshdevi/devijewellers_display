@@ -50,7 +50,8 @@ interface TVDisplayProps {
   goldFontSize?: number;
   silverFontSize?: number;
   labelFontSize?: number;
-  subLabelFontSize?: number;
+  saleTitleFontSize?: number;
+  purchaseTitleFontSize?: number;
   visibleRates?: string[];
   media?: MediaItem[];
   mediaLoopEnabled?: boolean;
@@ -81,7 +82,8 @@ export default function TVDisplay({
   goldFontSize,
   silverFontSize,
   labelFontSize,
-  subLabelFontSize,
+  saleTitleFontSize,
+  purchaseTitleFontSize,
   visibleRates,
   media = [],
   mediaLoopEnabled = true,
@@ -387,6 +389,11 @@ export default function TVDisplay({
           #tv-display-root .bg-\\[\\#0F2030\\] { background-color: ${customCardBg} !important; }
           #tv-display-root .bg-\\[\\#2B190B\\] { background-color: ${customCardBg} !important; }
         ` : ''}
+        .silver-gradient {
+          background: linear-gradient(to right, #B0BEC5, #FFFFFF, #B0BEC5) !important;
+          -webkit-background-clip: text !important;
+          -webkit-text-fill-color: transparent !important;
+        }
       `}</style>
 
       {/* SVG Clip Path for fully rounded curved organic capsule shape */}
@@ -401,7 +408,7 @@ export default function TVDisplay({
       {/* Dynamic Rotating Background from Media Slideshow (when enabled) */}
       {rotateBackgroundEnabled && activeBackgroundMedia.length > 0 && activeBackgroundMedia[bgMediaIndex] && (
         <div className="absolute inset-0 z-0 transition-opacity duration-1000 ease-in-out pointer-events-none">
-          {activeBackgroundMedia[bgMediaIndex].type === 'video' ? (
+          {activeBackgroundMedia[bgMediaIndex].type === 'video' || activeBackgroundMedia[bgMediaIndex].url.match(/\.(mp4|webm|mov)$/i) || activeBackgroundMedia[bgMediaIndex].url.startsWith('data:video') ? (
             <video 
               key={activeBackgroundMedia[bgMediaIndex].id}
               src={activeBackgroundMedia[bgMediaIndex].url}
@@ -556,7 +563,7 @@ export default function TVDisplay({
                             {/* Live indicator removed as requested */}
 
                               <h3 
-                                className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37] leading-none mb-0"
+                                className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37] leading-none mb-0 gold-gradient"
                                 style={{ fontSize: labelFontSize ? `${labelFontSize}px` : 'clamp(14px, min(3.5vw, 4vh), 32px)' }}
                               >
                                 {item.label}
@@ -567,7 +574,7 @@ export default function TVDisplay({
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
                                 <span 
                                   className="text-[#FFD700] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#FFD700]/30 pb-0.5 w-full text-center mb-0.5"
-                                  style={{ fontSize: subLabelFontSize ? `${subLabelFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
+                                  style={{ fontSize: saleTitleFontSize ? `${saleTitleFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
                                 >
                                   SALE RATE
                                 </span>
@@ -586,7 +593,7 @@ export default function TVDisplay({
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
                                 <span 
                                   className="text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5"
-                                  style={{ fontSize: subLabelFontSize ? `${subLabelFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
+                                  style={{ fontSize: purchaseTitleFontSize ? `${purchaseTitleFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
                                 >
                                   PURCHASE RATE
                                 </span>
@@ -659,7 +666,7 @@ export default function TVDisplay({
                             {/* Live indicator removed as requested */}
 
                               <h3 
-                                className={`font-poppins font-bold uppercase tracking-widest leading-none mb-0 ${item.key === 'silver' ? 'text-[#ededed]' : 'text-[#E5E4E2]'}`}
+                                className={`font-poppins font-bold uppercase tracking-widest leading-none mb-0 silver-gradient`}
                                 style={{ fontSize: labelFontSize ? `${labelFontSize}px` : 'clamp(14px, min(3.5vw, 4vh), 32px)' }}
                               >
                                 {item.label}
@@ -670,7 +677,7 @@ export default function TVDisplay({
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
                                 <span 
                                   className="text-[#E5E4E2] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#E5E4E2]/30 pb-0.5 w-full text-center mb-0.5"
-                                  style={{ fontSize: subLabelFontSize ? `${subLabelFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
+                                  style={{ fontSize: saleTitleFontSize ? `${saleTitleFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
                                 >
                                   SALE RATE
                                 </span>
@@ -693,7 +700,7 @@ export default function TVDisplay({
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
                                 <span 
                                   className="text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5"
-                                  style={{ fontSize: subLabelFontSize ? `${subLabelFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
+                                  style={{ fontSize: purchaseTitleFontSize ? `${purchaseTitleFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
                                 >
                                   PURCHASE RATE
                                 </span>
@@ -756,7 +763,7 @@ export default function TVDisplay({
             if (!currentItem) return null;
             return (
               <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-zinc-950">
-                {currentItem.type === 'video' ? (
+                {currentItem.type === 'video' || currentItem.url.match(/\.(mp4|webm|mov)$/i) || currentItem.url.startsWith('data:video') ? (
                   <video 
                     key={currentItem.id}
                     src={currentItem.url}
