@@ -34,7 +34,11 @@ import {
   Sliders,
   CheckCircle,
   HelpCircle,
-  Play
+  Play,
+  Pause,
+  AlertTriangle,
+  VolumeX,
+  RotateCw
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -249,6 +253,43 @@ export default function AdminDashboard({
       setSaveSuccess(false);
       window.location.reload();
     }, 1500);
+  };
+
+  const [rebooting, setRebooting] = useState<boolean>(false);
+  const [successMsg, setSuccessMsg] = useState<string>('');
+
+  const triggerSuccess = (msg: string) => {
+    setSuccessMsg(msg);
+    setTimeout(() => setSuccessMsg(''), 4000);
+  };
+
+  const simulateReboot = () => {
+    setRebooting(true);
+    onTriggerLog('Mobile Display Force Reboot', 'Triggered display driver reload on CP and retail outlets.');
+    setTimeout(() => {
+      setRebooting(false);
+      triggerSuccess('All showrooms TV Displays rebooted successfully!');
+    }, 2500);
+  };
+
+  const toggleEmergencyBlackout = () => {
+    const nextVal = !displaySetting.isBlackout;
+    onUpdateDisplaySetting({ isBlackout: nextVal });
+    onTriggerLog(
+      'Emergency Standby Triggered', 
+      `Blackout emergency mode ${nextVal ? 'ENABLED' : 'DISABLED'} from admin node.`
+    );
+    triggerSuccess(nextVal ? 'Showrooms blacked out!' : 'Screens restored to standard broadcast.');
+  };
+
+  const toggleScreenPause = () => {
+    const nextVal = !displaySetting.isPaused;
+    onUpdateDisplaySetting({ isPaused: nextVal });
+    onTriggerLog(
+      'Display Broadcast Power', 
+      `Showroom rate ticking ${nextVal ? 'PAUSED' : 'RESUMED'} from admin node.`
+    );
+    triggerSuccess(nextVal ? 'Rates locked/paused' : 'Live rates resumed.');
   };
 
   const handleResetToPresetTheme = (preset: DisplayTheme) => {
@@ -1063,6 +1104,67 @@ export default function AdminDashboard({
                 placeholder="https://api.metals.live/v1/spot"
               />
             </div>
+          </div>
+
+          {/* Sub-section 7: Showroom Operations Override / Emergency */}
+          <div className="flex flex-col gap-4 mt-4 border-t border-red-900/40 pt-4">
+            <h4 className="text-[11px] font-mono uppercase tracking-wider text-red-400 font-semibold flex items-center gap-2 pb-1.5">
+              <AlertTriangle className="w-4 h-4 text-red-400" /> 
+              <span>Showroom Operations Override / Emergency</span>
+            </h4>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <button
+                type="button"
+                onClick={toggleScreenPause}
+                className={`p-3 rounded border text-[10px] font-bold flex items-center justify-center gap-2 transition-colors ${
+                  displaySetting.isPaused
+                    ? 'bg-amber-500 hover:bg-amber-400 text-black border-amber-500 shadow-md shadow-amber-500/20'
+                    : 'bg-[#15161A]/50 hover:bg-amber-500/10 text-amber-500 border-amber-500/30'
+                }`}
+              >
+                {displaySetting.isPaused ? (
+                  <>
+                    <Play className="w-4 h-4" /> RESUME LIVE FEED
+                  </>
+                ) : (
+                  <>
+                    <Pause className="w-4 h-4" /> FREEZE RATES DISPLAY
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={toggleEmergencyBlackout}
+                className={`p-3 rounded border text-[10px] font-bold flex items-center justify-center gap-2 transition-colors ${
+                  displaySetting.isBlackout
+                    ? 'bg-red-600 hover:bg-red-500 text-white border-red-600 shadow-md shadow-red-600/30 animate-pulse'
+                    : 'bg-[#15161A]/50 hover:bg-red-500/10 text-red-500 border-red-500/30'
+                }`}
+                id="admin-blackout"
+              >
+                <VolumeX className="w-4 h-4" /> {displaySetting.isBlackout ? 'RESTORE DISPLAY' : 'EMERGENCY BLACKOUT'}
+              </button>
+
+              <button
+                type="button"
+                onClick={simulateReboot}
+                disabled={rebooting}
+                className="p-3 bg-[#15161A]/50 hover:bg-zinc-800 text-zinc-300 border border-zinc-800 hover:border-zinc-700 rounded text-[10px] font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                id="admin-reboot"
+              >
+                <RotateCw className={`w-4 h-4 ${rebooting ? 'animate-spin' : ''}`} /> 
+                {rebooting ? 'REBOOTING DRIVERS...' : 'REBOOT TV NODES'}
+              </button>
+            </div>
+            
+            {successMsg && (
+              <div className="p-2 bg-emerald-500/10 border border-emerald-500/40 text-emerald-400 text-[10px] font-mono tracking-widest uppercase rounded flex items-center justify-center gap-2">
+                <CheckCircle className="w-3 h-3" />
+                <span>{successMsg}</span>
+              </div>
+            )}
           </div>
 
           {/* Action Trigger Button */}

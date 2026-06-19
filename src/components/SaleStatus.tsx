@@ -52,7 +52,7 @@ export default function SaleStatus({
   // --- TAB 1: POSTER STUDIO CONFIGURATION STATES ---
   const [activeTheme, setActiveTheme] = useState<'midnight_gold' | 'festival_gold' | 'wedding_gold' | 'premium_black'>('midnight_gold');
   const [aspectRatio, setAspectRatio] = useState<'1:1' | '4:5' | '9:16'>('1:1');
-  const [selectedBranchId, setSelectedBranchId] = useState<string>(branches[0]?.id || 'b1');
+  const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([branches[0]?.id || 'b1']);
   const [headerTitle, setHeaderTitle] = useState<string>('DAILY RATES');
   const [greetingText, setGreetingText] = useState<string>('A Legacy of Purity & Timeless Trust');
   const [show24k, setShow24k] = useState<boolean>(true);
@@ -98,10 +98,15 @@ export default function SaleStatus({
     return () => clearInterval(interval);
   }, []);
 
-  const activeBranch = branches.find(b => b.id === selectedBranchId) || branches[0];
-  const activeBranchName = activeBranch ? activeBranch.name : 'DEVIJEWELLERS EXCLUSIVE SHOWROOM';
-  const activeBranchAddress = activeBranch ? activeBranch.address : '';
-  const activeBranchContact = activeBranch ? activeBranch.contact : '';
+  const activeSelectedBranches = branches.filter(b => selectedBranchIds.includes(b.id));
+  const activeBranchName = activeSelectedBranches.length === branches.length 
+    ? 'ALL DEVIJEWELLERS SHOWROOMS' 
+    : (activeSelectedBranches.length > 0 ? activeSelectedBranches.map(b => b.name).join(' | ') : 'DEVIJEWELLERS EXCLUSIVE SHOWROOM');
+  
+  const activeBranchAddress = activeSelectedBranches[0] ? activeSelectedBranches[0].address : '';
+  const activeBranchContact = activeSelectedBranches.length === branches.length
+    ? 'Universal Contact Book'
+    : (activeSelectedBranches.length > 0 ? activeSelectedBranches.map(b => b.contact).filter(Boolean).join(' | ') : '');
 
   // Currency Formatter
   const formatINR = (val: number, isSilver = false) => {
@@ -632,16 +637,29 @@ export default function SaleStatus({
 
               {/* Branch Locations mapping */}
               <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400">Select Showroom Branch</label>
-                <select
-                  value={selectedBranchId}
-                  onChange={(e) => setSelectedBranchId(e.target.value)}
-                  className="bg-[#0B0B0D] border border-zinc-800 text-xs p-2.5 rounded focus:border-[#D4AF37] focus:outline-none focus:ring-0 text-white"
-                >
+                <label className="text-[10px] font-mono uppercase tracking-widest text-zinc-400 mb-1">Select Showroom Branches</label>
+                <div className="flex flex-col gap-2 bg-[#0B0B0D] border border-zinc-800 p-2 rounded max-h-32 overflow-y-auto">
                   {branches.map(b => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
+                    <label key={b.id} className="flex items-center gap-2 cursor-pointer group">
+                      <input 
+                        type="checkbox"
+                        checked={selectedBranchIds.includes(b.id)}
+                        onChange={() => {
+                          if (selectedBranchIds.includes(b.id)) {
+                            // Don't uncheck if it's the last one
+                            if (selectedBranchIds.length > 1) {
+                              setSelectedBranchIds(selectedBranchIds.filter(id => id !== b.id));
+                            }
+                          } else {
+                            setSelectedBranchIds([...selectedBranchIds, b.id]);
+                          }
+                        }}
+                        className="w-4 h-4 accent-[#D4AF37] bg-zinc-900 border-zinc-700 rounded"
+                      />
+                      <span className="text-xs text-zinc-300 group-hover:text-white transition-colors">{b.name}</span>
+                    </label>
                   ))}
-                </select>
+                </div>
               </div>
 
               {/* Title Header text  */}
