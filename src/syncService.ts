@@ -39,7 +39,8 @@ export const syncRates = async () => {
     
     try {
       if (!settings?.useManualRates) {
-        response = await fetch(API_URL, { signal: controller.signal });
+        const bypassCacheUrl = `${API_URL}?_t=${Date.now()}`;
+        response = await fetch(bypassCacheUrl, { signal: controller.signal, headers: { 'Cache-Control': 'no-cache' } });
         if (!response.ok) {
           throw new Error(`API returned HTTP ${response.status}`);
         }

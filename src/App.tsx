@@ -246,7 +246,7 @@ export default function App() {
     });
 
     // Also fetch initial from backend
-    fetch('/api/rates/current')
+    fetch(`/api/rates/current?_t=${Date.now()}`)
       .then(async res => {
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
         const contentType = res.headers.get("content-type");
@@ -288,7 +288,7 @@ export default function App() {
   // Listen to fallback polling for rates based on dynamic interval
   useEffect(() => {
     const fetchCurrentRates = () => {
-      fetch('/api/rates/current')
+      fetch(`/api/rates/current?_t=${Date.now()}`)
         .then(async res => {
           if (!res.ok) throw new Error(`HTTP error ${res.status}`);
           const contentType = res.headers.get("content-type");

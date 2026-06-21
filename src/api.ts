@@ -9,6 +9,14 @@ export const apiRouter = express.Router();
 apiRouter.use(express.json({ limit: '50mb' }));
 apiRouter.use(express.urlencoded({ limit: '50mb', extended: true }));
 
+// Prevent caching for all API routes
+apiRouter.use((req, res, next) => {
+  res.header("Cache-Control", "no-cache, no-store, must-revalidate");
+  res.header("Pragma", "no-cache");
+  res.header("Expires", "0");
+  next();
+});
+
 apiRouter.get("/rates/current", async (req, res) => {
   try {
     const settingsLog = await db.select().from(calculationSettings).limit(1).catch(() => [{ syncIntervalMinutes: 1, enableAutoSync: true, storeRatesInDb: true }]);
