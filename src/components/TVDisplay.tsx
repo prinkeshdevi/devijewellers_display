@@ -3,31 +3,31 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  JewelleryRates, 
-  RateTrends, 
-  DisplayMode, 
-  DisplayTheme, 
-  PromoItem, 
+import React, { useState, useEffect, useRef } from "react";
+import {
+  JewelleryRates,
+  RateTrends,
+  DisplayMode,
+  DisplayTheme,
+  PromoItem,
   SystemConfig,
-  MediaItem
-} from '../types';
-import { 
-  Sparkles, 
-  Clock, 
-  TrendingUp, 
-  TrendingDown, 
-  Minus, 
-  PhoneCall, 
-  MapPin, 
+  MediaItem,
+} from "../types";
+import {
+  Sparkles,
+  Clock,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  PhoneCall,
+  MapPin,
   Calendar,
   Gift,
   Play,
   Volume2,
   VolumeX,
-  FileImage
-} from 'lucide-react';
+  FileImage,
+} from "lucide-react";
 
 interface TVDisplayProps {
   rates: JewelleryRates;
@@ -58,14 +58,15 @@ interface TVDisplayProps {
   rotateBackgroundEnabled?: boolean;
   ratesDisplayDuration?: number;
   slideshowDisplayDuration?: number;
+  lastSyncTime?: string | null;
   showDate?: boolean;
 }
 
 export default function TVDisplay({
   rates,
   trends,
-  mode = 'standard',
-  theme = 'midnight_gold',
+  mode = "standard",
+  theme = "midnight_gold",
   tickerText,
   announcementText,
   showAnnouncement = false,
@@ -90,20 +91,37 @@ export default function TVDisplay({
   rotateBackgroundEnabled = false,
   ratesDisplayDuration,
   slideshowDisplayDuration,
-  showDate = true
+  lastSyncTime,
+  showDate = true,
 }: TVDisplayProps) {
-  const [time, setTime] = useState<string>('');
-  const [date, setDate] = useState<string>('');
-  
+  const [time, setTime] = useState<string>("");
+  const [date, setDate] = useState<string>("");
+
   // Keep track of rate flashes for animation when rates change
   const [prevRates, setPrevRates] = useState<JewelleryRates | null>(null);
-  const [flashingFields, setFlashingFields] = useState<Record<string, 'up' | 'down' | null>>({});
+  const [flashingFields, setFlashingFields] = useState<
+    Record<string, "up" | "down" | null>
+  >({});
 
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
-      setTime(now.toLocaleTimeString('en-US', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-      setDate(now.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }));
+      setTime(
+        now.toLocaleTimeString("en-US", {
+          hour12: true,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        }),
+      );
+      setDate(
+        now.toLocaleDateString("en-US", {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }),
+      );
     };
 
     updateTime();
@@ -114,12 +132,12 @@ export default function TVDisplay({
   // Monitor rate changes to trigger temporary flash animations
   useEffect(() => {
     if (prevRates) {
-      const newFlashes: Record<string, 'up' | 'down' | null> = {};
+      const newFlashes: Record<string, "up" | "down" | null> = {};
       let hasChanges = false;
 
       (Object.keys(rates) as Array<keyof JewelleryRates>).forEach((field) => {
         if (rates[field] !== prevRates[field]) {
-          newFlashes[field] = rates[field] > prevRates[field] ? 'up' : 'down';
+          newFlashes[field] = rates[field] > prevRates[field] ? "up" : "down";
           hasChanges = true;
         }
       });
@@ -136,26 +154,37 @@ export default function TVDisplay({
   }, [rates]);
 
   // Slideshow and alternates loop states
-  const [currentSignageMode, setCurrentSignageMode] = useState<'rates' | 'media'>('rates');
+  const [currentSignageMode, setCurrentSignageMode] = useState<
+    "rates" | "media"
+  >("rates");
   const [activeMediaIndex, setActiveMediaIndex] = useState<number>(0);
   const [mediaTimeRemaining, setMediaTimeRemaining] = useState<number>(0);
 
   // Filter active media items based on status
-  const activeSignageMedia = (media || []).filter(item => item.active && item.type !== 'background');
-  const activeBackgroundMedia = (media || []).filter(item => item.active && item.type === 'background');
+  const activeSignageMedia = (media || []).filter(
+    (item) => item.active && item.type !== "background",
+  );
+  const activeBackgroundMedia = (media || []).filter(
+    (item) => item.active && item.type === "background",
+  );
 
   // Background rotation states for Rates mode
   const [bgMediaIndex, setBgMediaIndex] = useState<number>(0);
-  
+
   // Rotating background logic
   useEffect(() => {
-    if (!rotateBackgroundEnabled || isPaused || activeBackgroundMedia.length === 0) return;
-    
+    if (
+      !rotateBackgroundEnabled ||
+      isPaused ||
+      activeBackgroundMedia.length === 0
+    )
+      return;
+
     // Switch background every 10 seconds
     const bgInterval = setInterval(() => {
-      setBgMediaIndex(prev => (prev + 1) % activeBackgroundMedia.length);
+      setBgMediaIndex((prev) => (prev + 1) % activeBackgroundMedia.length);
     }, 10000);
-    
+
     return () => clearInterval(bgInterval);
   }, [rotateBackgroundEnabled, isPaused, activeBackgroundMedia.length]);
 
@@ -163,13 +192,13 @@ export default function TVDisplay({
     if (isPaused) return;
 
     if (!mediaLoopEnabled || activeSignageMedia.length === 0) {
-      setCurrentSignageMode('rates');
+      setCurrentSignageMode("rates");
       return;
     }
 
     let intervalId: NodeJS.Timeout;
-    
-    if (currentSignageMode === 'rates') {
+
+    if (currentSignageMode === "rates") {
       const durationSeconds = ratesDisplayDuration || 12;
       setMediaTimeRemaining(durationSeconds);
 
@@ -178,7 +207,7 @@ export default function TVDisplay({
         elapsed += 1;
         setMediaTimeRemaining(Math.max(0, durationSeconds - elapsed));
         if (elapsed >= durationSeconds) {
-          setCurrentSignageMode('media');
+          setCurrentSignageMode("media");
           setActiveMediaIndex(0);
           clearInterval(intervalId);
         }
@@ -187,11 +216,12 @@ export default function TVDisplay({
       // currentSignageMode === 'media'
       const currentMediaItem = activeSignageMedia[activeMediaIndex];
       if (!currentMediaItem) {
-        setCurrentSignageMode('rates');
+        setCurrentSignageMode("rates");
         return;
       }
 
-      const durationSeconds = currentMediaItem.displayDuration || slideshowDisplayDuration || 8;
+      const durationSeconds =
+        currentMediaItem.displayDuration || slideshowDisplayDuration || 8;
       setMediaTimeRemaining(durationSeconds);
 
       let elapsed = 0;
@@ -200,9 +230,9 @@ export default function TVDisplay({
         setMediaTimeRemaining(Math.max(0, durationSeconds - elapsed));
         if (elapsed >= durationSeconds) {
           if (activeMediaIndex + 1 < activeSignageMedia.length) {
-            setActiveMediaIndex(prev => prev + 1);
+            setActiveMediaIndex((prev) => prev + 1);
           } else {
-            setCurrentSignageMode('rates');
+            setCurrentSignageMode("rates");
           }
           clearInterval(intervalId);
         }
@@ -210,11 +240,23 @@ export default function TVDisplay({
     }
 
     return () => clearInterval(intervalId);
-  }, [currentSignageMode, activeMediaIndex, media, mediaLoopEnabled, ratesDisplayDuration, slideshowDisplayDuration, isPaused, activeSignageMedia.length]);
+  }, [
+    currentSignageMode,
+    activeMediaIndex,
+    media,
+    mediaLoopEnabled,
+    ratesDisplayDuration,
+    slideshowDisplayDuration,
+    isPaused,
+    activeSignageMedia.length,
+  ]);
 
   if (isBlackout) {
     return (
-      <div id="tv-blackout" className="w-full h-full min-h-[500px] bg-black flex items-center justify-center text-zinc-900 font-poppins select-none">
+      <div
+        id="tv-blackout"
+        className="w-full h-full min-h-[500px] bg-black flex items-center justify-center text-zinc-900 font-poppins select-none"
+      >
         ❌ SYSTEM STANDBY / BLACKOUT
       </div>
     );
@@ -222,93 +264,159 @@ export default function TVDisplay({
 
   // Handle design parameters depending on the active Theme
   // midnight_gold vs royal_emerald vs festival
-  let themeBg = 'bg-[#0B0B0D]';
-  let themeCard = 'bg-[#15161A] border-[#D4AF37]/30 shadow-2xl';
-  let accentColor = 'text-[#D4AF37]';
-  let bgAccentLine = 'bg-[#D4AF37]';
-  let sheenColor = 'rgba(212, 175, 55, 0.12)';
-  let festivalGreeting = 'A Festival of Prosperity & Light';
+  let themeBg = "bg-[#0B0B0D]";
+  let themeCard = "bg-[#15161A] border-[#D4AF37]/30 shadow-2xl";
+  let accentColor = "text-[#D4AF37]";
+  let bgAccentLine = "bg-[#D4AF37]";
+  let sheenColor = "rgba(212, 175, 55, 0.12)";
+  let festivalGreeting = "A Festival of Prosperity & Light";
 
-  if (theme === 'royal_emerald') {
-    themeBg = 'bg-[#041510]';
-    themeCard = 'bg-[#06241C] border-[#10B981]/20';
-    accentColor = 'text-[#F4D03F]'; // Keep gold text for elegance
-    bgAccentLine = 'bg-[#10B981]';
-    sheenColor = 'rgba(16, 185, 129, 0.09)';
-  } else if (theme === 'festival') {
-    themeBg = 'bg-[#1E090F]'; // deep red wine / maroon
-    themeCard = 'bg-[#2B0E17] border-[#EA580C]/20';
-    accentColor = 'text-[#F59E0B]';
-    bgAccentLine = 'bg-[#EA580C]';
-    sheenColor = 'rgba(234, 88, 12, 0.1)';
-    festivalGreeting = '🔮 Dhanteras & Diwali Swarna Mahotsav 🔮';
-  } else if (theme === 'rose_gold_velvet') {
-    themeBg = 'bg-[#1C101A]';
-    themeCard = 'bg-[#2B1425] border-[#E0A899]/30 shadow-2xl';
-    accentColor = 'text-[#E0A899]';
-    bgAccentLine = 'bg-[#E0A899]';
-    sheenColor = 'rgba(224, 168, 153, 0.12)';
-    festivalGreeting = '✨ Rose Gold & Diamond Masterpieces ✨';
-  } else if (theme === 'ocean_platinum') {
-    themeBg = 'bg-[#0B141E]';
-    themeCard = 'bg-[#0F2030] border-[#E5E7EB]/20';
-    accentColor = 'text-[#E5E7EB]';
-    bgAccentLine = 'bg-[#3B82F6]';
-    sheenColor = 'rgba(229, 231, 235, 0.1)';
-    festivalGreeting = '❄️ Premium Platinum & Solitaires ❄️';
-  } else if (theme === 'sunset_amber') {
-    themeBg = 'bg-[#1B0F05]';
-    themeCard = 'bg-[#2B190B] border-[#F59E0B]/35';
-    accentColor = 'text-[#F59E0B]';
-    bgAccentLine = 'bg-[#D97706]';
-    sheenColor = 'rgba(245, 158, 11, 0.15)';
-    festivalGreeting = '☀️ Golden Hour Exotics ☀️';
+  if (theme === "royal_emerald") {
+    themeBg = "bg-[#041510]";
+    themeCard = "bg-[#06241C] border-[#10B981]/20";
+    accentColor = "text-[#F4D03F]"; // Keep gold text for elegance
+    bgAccentLine = "bg-[#10B981]";
+    sheenColor = "rgba(16, 185, 129, 0.09)";
+  } else if (theme === "festival") {
+    themeBg = "bg-[#1E090F]"; // deep red wine / maroon
+    themeCard = "bg-[#2B0E17] border-[#EA580C]/20";
+    accentColor = "text-[#F59E0B]";
+    bgAccentLine = "bg-[#EA580C]";
+    sheenColor = "rgba(234, 88, 12, 0.1)";
+    festivalGreeting = "🔮 Dhanteras & Diwali Swarna Mahotsav 🔮";
+  } else if (theme === "rose_gold_velvet") {
+    themeBg = "bg-[#1C101A]";
+    themeCard = "bg-[#2B1425] border-[#E0A899]/30 shadow-2xl";
+    accentColor = "text-[#E0A899]";
+    bgAccentLine = "bg-[#E0A899]";
+    sheenColor = "rgba(224, 168, 153, 0.12)";
+    festivalGreeting = "✨ Rose Gold & Diamond Masterpieces ✨";
+  } else if (theme === "ocean_platinum") {
+    themeBg = "bg-[#0B141E]";
+    themeCard = "bg-[#0F2030] border-[#E5E7EB]/20";
+    accentColor = "text-[#E5E7EB]";
+    bgAccentLine = "bg-[#3B82F6]";
+    sheenColor = "rgba(229, 231, 235, 0.1)";
+    festivalGreeting = "❄️ Premium Platinum & Solitaires ❄️";
+  } else if (theme === "sunset_amber") {
+    themeBg = "bg-[#1B0F05]";
+    themeCard = "bg-[#2B190B] border-[#F59E0B]/35";
+    accentColor = "text-[#F59E0B]";
+    bgAccentLine = "bg-[#D97706]";
+    sheenColor = "rgba(245, 158, 11, 0.15)";
+    festivalGreeting = "☀️ Golden Hour Exotics ☀️";
   }
 
   // Handle portrait or landscape structures
   // When 'portrait' mode is activated, we layout items in a tower, optimal for 9:16 displays
-  const isPortrait = mode === 'portrait';
+  const isPortrait = mode === "portrait";
 
   const rateItems = [
-    { key: 'gold24k', name: '24K pure gold', rating: '99.9% Purity', label: '24K Gold', value: rates.gold24k, purchaseValue: rates.gold24kPurchase, trend: trends.gold24k, unit: '/ 10 gm' },
-    { key: 'gold22k', name: '22K standard gold', rating: '91.6% Hallmark (KDM)', label: '22K Gold', value: rates.gold22k, purchaseValue: rates.gold22kPurchase, trend: trends.gold22k, unit: '/ 10 gm' },
-    { key: 'gold20k', name: '20K premium jewelry', rating: '83.3% Purity Alloy', label: '20K Gold', value: rates.gold20k, purchaseValue: rates.gold20kPurchase, trend: trends.gold20k, unit: '/ 10 gm' },
-    { key: 'gold18k', name: '18K luxury diamond-set', rating: '75.0% Purity Alloy', label: '18K Gold', value: rates.gold18k, purchaseValue: rates.gold18kPurchase, trend: trends.gold18k, unit: '/ 10 gm' },
-    { key: 'silver', name: 'Silver', rating: '99.9% Pure Sterling', label: 'Silver', value: rates.silver, purchaseValue: rates.silverPurchase, trend: trends.silver, unit: '/ 1 kg' },
-    { key: 'platinum', name: 'Precious Platinum', rating: '95.0% Pure Platinum', label: 'Platinum Pt950', value: rates.platinum, purchaseValue: rates.platinumPurchase, trend: trends.platinum, unit: '/ 10 gm' },
-  ].filter(item => !visibleRates || visibleRates.length === 0 || visibleRates.includes(item.key));
+    {
+      key: "gold24k",
+      name: "24K pure gold",
+      rating: "99.9% Purity",
+      label: "24K Gold",
+      value: rates.gold24k,
+      purchaseValue: rates.gold24kPurchase,
+      trend: trends.gold24k,
+      unit: "/ 10 gm",
+    },
+    {
+      key: "gold22k",
+      name: "22K standard gold",
+      rating: "91.6% Hallmark (KDM)",
+      label: "22K Gold",
+      value: rates.gold22k,
+      purchaseValue: rates.gold22kPurchase,
+      trend: trends.gold22k,
+      unit: "/ 10 gm",
+    },
+    {
+      key: "gold20k",
+      name: "20K premium jewelry",
+      rating: "83.3% Purity Alloy",
+      label: "20K Gold",
+      value: rates.gold20k,
+      purchaseValue: rates.gold20kPurchase,
+      trend: trends.gold20k,
+      unit: "/ 10 gm",
+    },
+    {
+      key: "gold18k",
+      name: "18K luxury diamond-set",
+      rating: "75.0% Purity Alloy",
+      label: "18K Gold",
+      value: rates.gold18k,
+      purchaseValue: rates.gold18kPurchase,
+      trend: trends.gold18k,
+      unit: "/ 10 gm",
+    },
+    {
+      key: "silver",
+      name: "Silver",
+      rating: "99.9% Pure Sterling",
+      label: "Silver",
+      value: rates.silver,
+      purchaseValue: rates.silverPurchase,
+      trend: trends.silver,
+      unit: "/ 1 kg",
+    },
+    {
+      key: "platinum",
+      name: "Precious Platinum",
+      rating: "95.0% Pure Platinum",
+      label: "Platinum Pt950",
+      value: rates.platinum,
+      purchaseValue: rates.platinumPurchase,
+      trend: trends.platinum,
+      unit: "/ 10 gm",
+    },
+  ].filter(
+    (item) =>
+      !visibleRates ||
+      visibleRates.length === 0 ||
+      visibleRates.includes(item.key),
+  );
 
-  const goldRateItems = rateItems.filter(item => item.key.startsWith('gold'));
-  const silverRateItems = rateItems.filter(item => !item.key.startsWith('gold'));
+  const goldRateItems = rateItems.filter((item) => item.key.startsWith("gold"));
+  const silverRateItems = rateItems.filter(
+    (item) => !item.key.startsWith("gold"),
+  );
   const colCount = goldRateItems.length > 0 ? goldRateItems.length : 4;
 
   const formatPrice = (val: number, isSilver: boolean) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       maximumFractionDigits: 0,
     }).format(Math.abs(val || 0));
   };
 
   const hexToRgb = (hex: string): string => {
-    const cleanHex = hex.replace('#', '');
+    const cleanHex = hex.replace("#", "");
     const r = parseInt(cleanHex.substring(0, 2), 16) || 212;
     const g = parseInt(cleanHex.substring(2, 4), 16) || 175;
     const b = parseInt(cleanHex.substring(4, 6), 16) || 55;
     return `${r}, ${g}, ${b}`;
   };
 
-  const overrideGoldRgb = customGoldColor ? hexToRgb(customGoldColor) : '212, 175, 55';
-  
-  const isRotatingBgActive = rotateBackgroundEnabled && activeBackgroundMedia.length > 0;
+  const overrideGoldRgb = customGoldColor
+    ? hexToRgb(customGoldColor)
+    : "212, 175, 55";
+
+  const isRotatingBgActive =
+    rotateBackgroundEnabled && activeBackgroundMedia.length > 0;
 
   return (
-    <div 
+    <div
       id="tv-display-root"
-      className={`w-full text-[#F8F5EE] select-none h-full flex flex-col justify-between font-poppins transition-all duration-700 p-0 relative overflow-hidden ${isRotatingBgActive ? 'bg-black' : themeBg}`}
-      style={{ 
-        backgroundColor: isRotatingBgActive ? 'transparent' : (customPrimaryBg || undefined),
-        borderColor: customGoldColor ? `${customGoldColor}30` : undefined
+      className={`w-full text-[#F8F5EE] select-none h-full flex flex-col justify-between font-poppins transition-all duration-700 p-0 relative overflow-hidden ${isRotatingBgActive ? "bg-black" : themeBg}`}
+      style={{
+        backgroundColor: isRotatingBgActive
+          ? "transparent"
+          : customPrimaryBg || undefined,
+        borderColor: customGoldColor ? `${customGoldColor}30` : undefined,
       }}
     >
       {/* CSS Styles injection for professional dynamic visual polish */}
@@ -363,7 +471,9 @@ export default function TVDisplay({
           clip-path: url(#hex-rounded);
         }
 
-        ${customGoldColor ? `
+        ${
+          customGoldColor
+            ? `
           #tv-display-root .text-\\[\\#D4AF37\\] { color: ${customGoldColor} !important; }
           #tv-display-root .bg-\\[\\#D4AF37\\] { background-color: ${customGoldColor} !important; }
           #tv-display-root .border-\\[\\#D4AF37\\] { border-color: ${customGoldColor} !important; }
@@ -380,15 +490,21 @@ export default function TVDisplay({
             -webkit-background-clip: text !important;
             -webkit-text-fill-color: transparent !important;
           }
-        ` : ''}
-        ${customCardBg ? `
+        `
+            : ""
+        }
+        ${
+          customCardBg
+            ? `
           #tv-display-root .bg-\\[\\#15161A\\] { background-color: ${customCardBg} !important; }
           #tv-display-root .bg-\\[\\#06241C\\] { background-color: ${customCardBg} !important; }
           #tv-display-root .bg-\\[\\#2B0E17\\] { background-color: ${customCardBg} !important; }
           #tv-display-root .bg-\\[\\#2B1425\\] { background-color: ${customCardBg} !important; }
           #tv-display-root .bg-\\[\\#0F2030\\] { background-color: ${customCardBg} !important; }
           #tv-display-root .bg-\\[\\#2B190B\\] { background-color: ${customCardBg} !important; }
-        ` : ''}
+        `
+            : ""
+        }
         .silver-gradient {
           background: linear-gradient(to right, #B0BEC5, #FFFFFF, #B0BEC5) !important;
           -webkit-background-clip: text !important;
@@ -406,85 +522,117 @@ export default function TVDisplay({
       </svg>
 
       {/* Dynamic Rotating Background from Media Slideshow (when enabled) */}
-      {rotateBackgroundEnabled && activeBackgroundMedia.length > 0 && activeBackgroundMedia[bgMediaIndex] && (
-        <div className="absolute inset-0 z-0 transition-opacity duration-1000 ease-in-out pointer-events-none">
-          {activeBackgroundMedia[bgMediaIndex].type === 'video' || activeBackgroundMedia[bgMediaIndex].url.match(/\.(mp4|webm|mov)$/i) || activeBackgroundMedia[bgMediaIndex].url.startsWith('data:video') ? (
-            <video 
-              key={activeBackgroundMedia[bgMediaIndex].id}
-              src={activeBackgroundMedia[bgMediaIndex].url}
-              className="w-full h-full object-cover"
-              autoPlay loop muted playsInline
-            />
-          ) : (
-            <img 
-              key={activeBackgroundMedia[bgMediaIndex].id}
-              src={activeBackgroundMedia[bgMediaIndex].url}
-              className="w-full h-full object-cover"
-              referrerPolicy="no-referrer"
-              alt="bg media"
-            />
-          )}
-          {/* Soft dark gradient mask over rotating image to ensure text legibility */}
-          <div className="absolute inset-0 bg-black/60" />
-        </div>
-      )}
+      {rotateBackgroundEnabled &&
+        activeBackgroundMedia.length > 0 &&
+        activeBackgroundMedia[bgMediaIndex] && (
+          <div className="absolute inset-0 z-0 transition-opacity duration-1000 ease-in-out pointer-events-none">
+            {activeBackgroundMedia[bgMediaIndex].type === "video" ||
+            activeBackgroundMedia[bgMediaIndex].url.match(
+              /\.(mp4|webm|mov)$/i,
+            ) ||
+            activeBackgroundMedia[bgMediaIndex].url.startsWith("data:video") ? (
+              <video
+                key={activeBackgroundMedia[bgMediaIndex].id}
+                src={activeBackgroundMedia[bgMediaIndex].url}
+                className="w-full h-full object-cover"
+                autoPlay
+                loop
+                muted
+                playsInline
+              />
+            ) : (
+              <img
+                key={activeBackgroundMedia[bgMediaIndex].id}
+                src={activeBackgroundMedia[bgMediaIndex].url}
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+                alt="bg media"
+              />
+            )}
+            {/* Soft dark gradient mask over rotating image to ensure text legibility */}
+            <div className="absolute inset-0 bg-black/60" />
+          </div>
+        )}
 
       {/* Background Decorative Art Deco Elements for Premium Luxury Look */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[radial-gradient(#D4AF37_1px,transparent_1px)] [background-size:16px_16px]"></div>
 
       {/* HEADER SECTION */}
-      <div id="tv-header" className="flex flex-col sm:flex-row justify-between items-center pb-1 mb-1 relative z-10 gap-2 shrink-0">
-        
+      <div
+        id="tv-header"
+        className="flex flex-col sm:flex-row justify-between items-center pb-1 mb-1 relative z-10 gap-2 shrink-0"
+      >
         {/* Dynamic Display Mode Badges (Non-obtrusive but informative branding) */}
         <div className="flex flex-1 justify-start">
           <div className="hidden lg:flex items-center gap-2 px-3 py-1 bg-black/40 rounded-full border border-[#D4AF37]/15 text-[10px] tracking-widest text-[#D4AF37] font-poppins uppercase">
             <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E] animate-ping"></span>
             <span>{mode} view</span>
             <span className="text-zinc-500">|</span>
-            <span>{theme.replace('_', ' ')}</span>
+            <span>{theme.replace("_", " ")}</span>
           </div>
         </div>
 
         {/* Center Logo */}
         <div className="flex flex-1 justify-center items-center">
-          {(companyConfig?.logoImageBase64) ? (
-            <img 
+          {companyConfig?.logoImageBase64 ? (
+            <img
               src={companyConfig.logoImageBase64}
-              alt={companyConfig.logoText || "Brand Logo"} 
+              alt={companyConfig.logoText || "Brand Logo"}
               className="h-16 md:h-20 lg:h-24 max-w-[400px] object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] bg-black/40 p-2 rounded"
             />
           ) : (
-            <img 
-              src="/logo.png" 
-              alt="Devi Jewellers Logo" 
+            <img
+              src="/logo.png"
+              alt="Devi Jewellers Logo"
               className="h-16 md:h-20 lg:h-24 max-w-[400px] object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.5)] flex-shrink-0"
               onError={(e) => {
-                if (e.currentTarget.src.includes('.png')) {
-                  e.currentTarget.src = '/logo.jpg';
-                } else if (e.currentTarget.src.includes('.jpg')) {
-                  e.currentTarget.src = '/logo.jpeg';
+                if (e.currentTarget.src.includes(".png")) {
+                  e.currentTarget.src = "/logo.jpg";
+                } else if (e.currentTarget.src.includes(".jpg")) {
+                  e.currentTarget.src = "/logo.jpeg";
                 }
               }}
             />
           )}
         </div>
 
-        <div className="flex flex-1 items-center justify-end gap-4 text-right">
-          <div className="bg-black/30 border border-zinc-800/80 px-4 py-1.5 rounded-md flex items-center gap-3">
+        <div className="flex flex-1 items-center justify-end gap-2 md:gap-4 text-right">
+          <div className="bg-black/30 border border-zinc-800/80 px-2.5 md:px-4 py-1.5 rounded-md flex items-center gap-2 md:gap-3">
+            {lastSyncTime && (
+              <>
+                <div className="text-left hidden sm:block">
+                  <p className="text-[10px] font-poppins tracking-widest text-[#10B981] uppercase flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-[#10B981] rounded-full animate-pulse mr-0.5"></span>{" "}
+                    Sync
+                  </p>
+                  <p className="text-xs font-semibold text-zinc-300">
+                    {lastSyncTime}
+                  </p>
+                </div>
+                <span className="w-px h-6 bg-zinc-800 hidden sm:block"></span>
+              </>
+            )}
             {showDate && (
               <>
                 <div className="text-left">
-                  <p className="text-[10px] font-poppins tracking-widest text-zinc-500 uppercase">Showroom Date</p>
-                  <p className="text-xs font-semibold text-[#F1ECE4]">{date || '9 Jun 2026'}</p>
+                  <p className="text-[10px] font-poppins tracking-widest text-zinc-500 uppercase">
+                    Showroom Date
+                  </p>
+                  <p className="text-xs font-semibold text-[#F1ECE4]">
+                    {date || "9 Jun 2026"}
+                  </p>
                 </div>
                 <span className="w-px h-6 bg-zinc-800"></span>
               </>
             )}
             <div>
               <p className="text-[10px] font-poppins tracking-widest text-[#D4AF37] uppercase flex items-center gap-1">
-                <Clock className="w-3 h-3 animate-spin-slow text-[#D4AF37]" /> Live Time
+                <Clock className="w-3 h-3 animate-spin-slow text-[#D4AF37]" />{" "}
+                Live Time
               </p>
-              <p className="text-sm font-poppins font-bold text-[#F8F5EE] tracking-wider">{time || '04:00:00 PM'}</p>
+              <p className="text-sm font-poppins font-bold text-[#F8F5EE] tracking-wider">
+                {time || "04:00:00 PM"}
+              </p>
             </div>
           </div>
         </div>
@@ -492,7 +640,10 @@ export default function TVDisplay({
 
       {/* EMERGENCY ANNOUNCEMENT BANNER */}
       {showAnnouncement && announcementText && (
-        <div id="tv-announcement" className="w-full mb-4 bg-[#D4AF37]/10 border-y border-[#D4AF37] py-2 px-4 flex items-center gap-3 animate-pulse relative z-10">
+        <div
+          id="tv-announcement"
+          className="w-full mb-4 bg-[#D4AF37]/10 border-y border-[#D4AF37] py-2 px-4 flex items-center gap-3 animate-pulse relative z-10"
+        >
           <span className="bg-[#D4AF37] text-black font-extrabold text-[10px] px-2 py-0.5 rounded tracking-widest uppercase">
             ANNOUNCEMENT
           </span>
@@ -503,58 +654,84 @@ export default function TVDisplay({
       )}
 
       {/* SWITCHABLE BODY CORE: MAIN RATES GRID OR ACTIVE MEDIA SLIDESHOW */}
-      {currentSignageMode === 'rates' || activeSignageMedia.length === 0 ? (
+      {currentSignageMode === "rates" || activeSignageMedia.length === 0 ? (
         <>
           {/* MAIN RATE CARDS GRID (SPLIT BY METAL GROUPS INTO SIDE-BY-SIDE VERTICAL COLUMNS) */}
-          <div className={`flex-1 grid gap-2 md:gap-4 my-1 ${isPortrait ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
+          <div
+            className={`flex-1 grid gap-2 md:gap-4 my-1 ${isPortrait ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"}`}
+          >
             {/* GOLD RATES COLUMN */}
             {goldRateItems.length > 0 && (
               <div className="flex flex-col gap-1 w-full h-full min-h-0 shrink">
-                <div 
-                  id="tv-gold-rate-grid" 
+                <div
+                  id="tv-gold-rate-grid"
                   className="flex-1 w-full h-full grid gap-1 md:gap-2 min-h-0 shrink"
-                  style={{ gridTemplateRows: `repeat(${Math.max(goldRateItems.length, silverRateItems.length)}, minmax(0, 1fr))` }}
+                  style={{
+                    gridTemplateRows: `repeat(${Math.max(goldRateItems.length, silverRateItems.length)}, minmax(0, 1fr))`,
+                  }}
                 >
                   {goldRateItems.map((item) => {
                     const isFlashing = flashingFields[item.key];
-                    let flashClass = '';
-                    if (isFlashing === 'up') flashClass = 'flash-up-anim';
-                    else if (isFlashing === 'down') flashClass = 'flash-down-anim';
+                    let flashClass = "";
+                    if (isFlashing === "up") flashClass = "flash-up-anim";
+                    else if (isFlashing === "down")
+                      flashClass = "flash-down-anim";
 
                     return (
-                      <div key={item.key} className="relative w-full h-full px-0 md:px-2 py-0 transition-all duration-500 group flex flex-col">
+                      <div
+                        key={item.key}
+                        className="relative w-full h-full px-0 md:px-2 py-0 transition-all duration-500 group flex flex-col"
+                      >
                         {/* Horizontal Connecting Line behind */}
-                        <div className={`absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 opacity-50 ${bgAccentLine} z-0 rounded-full`} />
-                        
-                          {/* Rate Box Shape Container */}
-                          <div className="relative w-full h-full filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
-                            
-                            {/* SVG PERFECT BORDER FOR SHAPE */}
-                            <svg className="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 100 100" preserveAspectRatio="none">
-                              <path 
-                                d="M 8 0 L 92 0 C 97 0, 100 35, 100 50 C 100 65, 97 100, 92 100 L 8 100 C 3 100, 0 65, 0 50 C 0 35, 3 0, 8 0 Z" 
-                                fill="none" 
-                                className={customGoldColor ? '' : 'stroke-[#D4AF37]'}
-                                style={customGoldColor ? { stroke: customGoldColor } : {}}
-                                vectorEffect="non-scaling-stroke"
-                                strokeWidth={3}
-                                opacity={0.9}
-                              />
-                            </svg>
-                            
-                            {/* Inner Fill Layer */}
-                            <div className={`clip-hexagon absolute inset-0 z-0 overflow-hidden ${themeCard.split(' ')[0]}`}>
+                        <div
+                          className={`absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 opacity-50 ${bgAccentLine} z-0 rounded-full`}
+                        />
+
+                        {/* Rate Box Shape Container */}
+                        <div className="relative w-full h-full filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
+                          {/* SVG PERFECT BORDER FOR SHAPE */}
+                          <svg
+                            className="absolute inset-0 w-full h-full pointer-events-none z-20"
+                            viewBox="0 0 100 100"
+                            preserveAspectRatio="none"
+                          >
+                            <path
+                              d="M 8 0 L 92 0 C 97 0, 100 35, 100 50 C 100 65, 97 100, 92 100 L 8 100 C 3 100, 0 65, 0 50 C 0 35, 3 0, 8 0 Z"
+                              fill="none"
+                              className={
+                                customGoldColor ? "" : "stroke-[#D4AF37]"
+                              }
+                              style={
+                                customGoldColor
+                                  ? { stroke: customGoldColor }
+                                  : {}
+                              }
+                              vectorEffect="non-scaling-stroke"
+                              strokeWidth={3}
+                              opacity={0.9}
+                            />
+                          </svg>
+
+                          {/* Inner Fill Layer */}
+                          <div
+                            className={`clip-hexagon absolute inset-0 z-0 overflow-hidden ${themeCard.split(" ")[0]}`}
+                          >
                             {/* Inner Shine Center Glow */}
                             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.12)_0%,transparent_70%)] pointer-events-none" />
                             {/* Animated Sweep */}
                             <div className="absolute inset-0 shine-effect opacity-30 mix-blend-screen" />
-                            {flashClass && <div className={`absolute inset-0 ${flashClass}`} />}
+                            {flashClass && (
+                              <div
+                                className={`absolute inset-0 ${flashClass}`}
+                              />
+                            )}
                           </div>
 
                           {/* Content Layer */}
                           <div className="relative h-full flex-1 z-10 px-2 md:px-6 py-0.5 md:py-1 flex flex-col items-center justify-center text-center shrink min-h-0">
                             {/* Gold luxury sparkle top-right */}
-                            {(item.key === 'gold24k' || item.key === 'gold22k') && (
+                            {(item.key === "gold24k" ||
+                              item.key === "gold22k") && (
                               <div className="absolute top-4 left-6 md:left-10 pointer-events-none opacity-50">
                                 <Sparkles className="w-4 h-4 text-[#F4D03F]" />
                               </div>
@@ -562,46 +739,69 @@ export default function TVDisplay({
 
                             {/* Live indicator removed as requested */}
 
-                              <h3 
-                                className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37] leading-none mb-0 gold-gradient"
-                                style={{ fontSize: labelFontSize ? `${labelFontSize}px` : 'clamp(14px, min(3.5vw, 4vh), 32px)' }}
-                              >
-                                {item.label}
-                              </h3>
-                              {/* HUGE Rate Typography */}
-                              <div className="flex items-stretch w-full min-h-0 shrink -mt-1 md:-mt-2">
+                            <h3
+                              className="font-poppins font-bold uppercase tracking-widest text-[#D4AF37] leading-none mb-0 gold-gradient"
+                              style={{
+                                fontSize: labelFontSize
+                                  ? `${labelFontSize}px`
+                                  : "clamp(14px, min(3.5vw, 4vh), 32px)",
+                              }}
+                            >
+                              {item.label}
+                            </h3>
+                            {/* HUGE Rate Typography */}
+                            <div className="flex items-stretch w-full min-h-0 shrink -mt-1 md:-mt-2">
                               {/* Left: SALE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
-                                <span 
+                                <span
                                   className="text-[#FFD700] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#FFD700]/30 pb-0.5 w-full text-center mb-0.5"
-                                  style={{ fontSize: saleTitleFontSize ? `${saleTitleFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
+                                  style={{
+                                    fontSize: saleTitleFontSize
+                                      ? `${saleTitleFontSize}px`
+                                      : "clamp(10px,1.5vh,16px)",
+                                  }}
                                 >
                                   SALE RATE
                                 </span>
-                                <span 
+                                <span
                                   className="font-poppins font-black tracking-tight leading-none gold-gradient"
-                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : 'clamp(18px, min(5vw, 6vh), 64px)' }}
+                                  style={{
+                                    fontSize: rateFontSize
+                                      ? `${rateFontSize}px`
+                                      : "clamp(18px, min(5vw, 6vh), 64px)",
+                                  }}
                                 >
                                   {formatPrice(item.value, false)}
                                 </span>
                               </div>
-                              
+
                               {/* Divider */}
                               <div className="w-[3px] rounded-full bg-[#FFFFFF] opacity-80 shrink-0 my-2"></div>
-                              
+
                               {/* Right: PURCHASE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
-                                <span 
+                                <span
                                   className="text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5"
-                                  style={{ fontSize: purchaseTitleFontSize ? `${purchaseTitleFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
+                                  style={{
+                                    fontSize: purchaseTitleFontSize
+                                      ? `${purchaseTitleFontSize}px`
+                                      : "clamp(10px,1.5vh,16px)",
+                                  }}
                                 >
                                   PURCHASE RATE
                                 </span>
-                                <span 
+                                <span
                                   className="font-poppins font-black tracking-tight leading-none text-zinc-300"
-                                  style={{ fontSize: purchaseRateFontSize ? `${purchaseRateFontSize}px` : 'clamp(18px, min(5vw, 6vh), 64px)' }}
+                                  style={{
+                                    fontSize: purchaseRateFontSize
+                                      ? `${purchaseRateFontSize}px`
+                                      : "clamp(18px, min(5vw, 6vh), 64px)",
+                                  }}
                                 >
-                                  {formatPrice(item.purchaseValue || (item.value - 200), false)}
+                                  {formatPrice(
+                                    item.purchaseValue || item.value - 200,
+                                    false,
+                                  )}
                                 </span>
                               </div>
                             </div>
@@ -619,100 +819,149 @@ export default function TVDisplay({
             {/* SILVER & OTHER METALS COLUMN */}
             {silverRateItems.length > 0 && (
               <div className="flex flex-col gap-1 w-full h-full min-h-0 shrink">
-                <div 
-                  id="tv-silver-rate-grid" 
+                <div
+                  id="tv-silver-rate-grid"
                   className="flex-1 w-full h-full grid gap-1 md:gap-2 min-h-0 shrink"
-                  style={{ gridTemplateRows: `repeat(${Math.max(goldRateItems.length, silverRateItems.length)}, minmax(0, 1fr))` }}
+                  style={{
+                    gridTemplateRows: `repeat(${Math.max(goldRateItems.length, silverRateItems.length)}, minmax(0, 1fr))`,
+                  }}
                 >
                   {silverRateItems.map((item) => {
-                    const isSilver = item.key === 'silver';
+                    const isSilver = item.key === "silver";
                     const isFlashing = flashingFields[item.key];
-                    let flashClass = '';
-                    if (isFlashing === 'up') flashClass = 'flash-up-anim';
-                    else if (isFlashing === 'down') flashClass = 'flash-down-anim';
+                    let flashClass = "";
+                    if (isFlashing === "up") flashClass = "flash-up-anim";
+                    else if (isFlashing === "down")
+                      flashClass = "flash-down-anim";
 
                     return (
-                      <div key={item.key} className="relative w-full h-full px-0 md:px-2 py-0 transition-all duration-500 group flex flex-col">
+                      <div
+                        key={item.key}
+                        className="relative w-full h-full px-0 md:px-2 py-0 transition-all duration-500 group flex flex-col"
+                      >
                         {/* Horizontal Connecting Line behind */}
-                        <div className={`absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 opacity-50 z-0 rounded-full ${item.key === 'silver' ? 'bg-[#ededed]' : bgAccentLine}`} />
-                        
+                        <div
+                          className={`absolute left-0 right-0 top-1/2 h-0.5 -translate-y-1/2 opacity-50 z-0 rounded-full ${item.key === "silver" ? "bg-[#ededed]" : bgAccentLine}`}
+                        />
+
                         {/* Rate Box Shape Container */}
                         <div className="relative w-full h-full filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.4)]">
-                          
                           {/* SVG PERFECT BORDER FOR SHAPE */}
-                          <svg className="absolute inset-0 w-full h-full pointer-events-none z-20" viewBox="0 0 100 100" preserveAspectRatio="none">
-                            <path 
-                              d="M 8 0 L 92 0 C 97 0, 100 35, 100 50 C 100 65, 97 100, 92 100 L 8 100 C 3 100, 0 65, 0 50 C 0 35, 3 0, 8 0 Z" 
-                              fill="none" 
-                              className={item.key === 'silver' ? 'stroke-[#ededed]' : (customGoldColor ? '' : 'stroke-[#D4AF37]')}
-                              style={(item.key !== 'silver' && customGoldColor) ? { stroke: customGoldColor } : {}}
+                          <svg
+                            className="absolute inset-0 w-full h-full pointer-events-none z-20"
+                            viewBox="0 0 100 100"
+                            preserveAspectRatio="none"
+                          >
+                            <path
+                              d="M 8 0 L 92 0 C 97 0, 100 35, 100 50 C 100 65, 97 100, 92 100 L 8 100 C 3 100, 0 65, 0 50 C 0 35, 3 0, 8 0 Z"
+                              fill="none"
+                              className={
+                                item.key === "silver"
+                                  ? "stroke-[#ededed]"
+                                  : customGoldColor
+                                    ? ""
+                                    : "stroke-[#D4AF37]"
+                              }
+                              style={
+                                item.key !== "silver" && customGoldColor
+                                  ? { stroke: customGoldColor }
+                                  : {}
+                              }
                               vectorEffect="non-scaling-stroke"
                               strokeWidth={3}
                               opacity={0.9}
                             />
                           </svg>
-                          
+
                           {/* Inner Fill Layer */}
-                          <div className={`clip-hexagon absolute inset-0 z-0 overflow-hidden ${themeCard.split(' ')[0]}`}>
+                          <div
+                            className={`clip-hexagon absolute inset-0 z-0 overflow-hidden ${themeCard.split(" ")[0]}`}
+                          >
                             {/* Inner Shine Center Glow */}
                             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.12)_0%,transparent_70%)] pointer-events-none" />
                             {/* Animated Sweep */}
                             <div className="absolute inset-0 shine-effect opacity-30 mix-blend-screen" />
-                            {flashClass && <div className={`absolute inset-0 ${flashClass}`} />}
+                            {flashClass && (
+                              <div
+                                className={`absolute inset-0 ${flashClass}`}
+                              />
+                            )}
                           </div>
 
                           {/* Content Layer */}
                           <div className="relative h-full flex-1 z-10 px-2 md:px-6 py-0.5 md:py-1 flex flex-col items-center justify-center text-center shrink min-h-0">
                             {/* Live indicator removed as requested */}
 
-                              <h3 
-                                className={`font-poppins font-bold uppercase tracking-widest leading-none mb-0 silver-gradient`}
-                                style={{ fontSize: labelFontSize ? `${labelFontSize}px` : 'clamp(14px, min(3.5vw, 4vh), 32px)' }}
-                              >
-                                {item.label}
-                              </h3>
-                              {/* HUGE Rate Typography */}
-                              <div className="flex items-stretch w-full min-h-0 shrink -mt-1 md:-mt-2">
+                            <h3
+                              className={`font-poppins font-bold uppercase tracking-widest leading-none mb-0 silver-gradient`}
+                              style={{
+                                fontSize: labelFontSize
+                                  ? `${labelFontSize}px`
+                                  : "clamp(14px, min(3.5vw, 4vh), 32px)",
+                              }}
+                            >
+                              {item.label}
+                            </h3>
+                            {/* HUGE Rate Typography */}
+                            <div className="flex items-stretch w-full min-h-0 shrink -mt-1 md:-mt-2">
                               {/* Left: SALE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
-                                <span 
+                                <span
                                   className="text-[#E5E4E2] font-poppins uppercase font-black tracking-[0.1em] border-b border-[#E5E4E2]/30 pb-0.5 w-full text-center mb-0.5"
-                                  style={{ fontSize: saleTitleFontSize ? `${saleTitleFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
+                                  style={{
+                                    fontSize: saleTitleFontSize
+                                      ? `${saleTitleFontSize}px`
+                                      : "clamp(10px,1.5vh,16px)",
+                                  }}
                                 >
                                   SALE RATE
                                 </span>
-                                <span 
+                                <span
                                   className={`font-poppins font-black tracking-tight leading-none ${
-                                    item.key === 'silver' 
-                                      ? 'text-[#ededed]' 
-                                      : 'text-[#E5E4E2]'
+                                    item.key === "silver"
+                                      ? "text-[#ededed]"
+                                      : "text-[#E5E4E2]"
                                   }`}
-                                  style={{ fontSize: rateFontSize ? `${rateFontSize}px` : 'clamp(18px, min(5vw, 6vh), 56px)' }}
+                                  style={{
+                                    fontSize: rateFontSize
+                                      ? `${rateFontSize}px`
+                                      : "clamp(18px, min(5vw, 6vh), 56px)",
+                                  }}
                                 >
                                   {formatPrice(item.value, isSilver)}
                                 </span>
                               </div>
-                              
+
                               {/* Divider */}
                               <div className="w-[3px] rounded-full bg-[#FFFFFF] opacity-80 shrink-0 my-2"></div>
-                              
+
                               {/* Right: PURCHASE */}
                               <div className="flex-1 flex flex-col items-center justify-center px-1">
-                                <span 
+                                <span
                                   className="text-[#E2E8F0] font-poppins uppercase font-black tracking-[0.1em] border-b border-zinc-400/30 pb-0.5 w-full text-center mb-0.5"
-                                  style={{ fontSize: purchaseTitleFontSize ? `${purchaseTitleFontSize}px` : 'clamp(10px,1.5vh,16px)' }}
+                                  style={{
+                                    fontSize: purchaseTitleFontSize
+                                      ? `${purchaseTitleFontSize}px`
+                                      : "clamp(10px,1.5vh,16px)",
+                                  }}
                                 >
                                   PURCHASE RATE
                                 </span>
-                                <span 
-                                  className={`font-poppins font-black tracking-tight leading-none ${item.key === 'silver' ? 'text-[#ededed]' : 'text-zinc-400'}`}
-                                  style={{ fontSize: purchaseRateFontSize ? `${purchaseRateFontSize}px` : 'clamp(18px, min(5vw, 6vh), 56px)' }}
+                                <span
+                                  className={`font-poppins font-black tracking-tight leading-none ${item.key === "silver" ? "text-[#ededed]" : "text-zinc-400"}`}
+                                  style={{
+                                    fontSize: purchaseRateFontSize
+                                      ? `${purchaseRateFontSize}px`
+                                      : "clamp(18px, min(5vw, 6vh), 56px)",
+                                  }}
                                 >
-                                  {formatPrice(item.purchaseValue || (item.value - 2), isSilver)}
+                                  {formatPrice(
+                                    item.purchaseValue || item.value - 2,
+                                    isSilver,
+                                  )}
                                 </span>
                               </div>
                             </div>
-
 
                             {/* Bottom detail row removed as requested */}
                           </div>
@@ -726,8 +975,11 @@ export default function TVDisplay({
           </div>
 
           {/* PROMOTIONAL POPUP BLOCK (FESTIVAL/PREMIUM MODES) */}
-          {(mode === 'premium' || mode === 'festival') && activePromo && (
-            <div id="tv-promo-board" className="mb-4 bg-gradient-to-r from-black/80 via-[#15161A]/95 to-black/85 rounded border border-[#D4AF37]/35 p-3 flex flex-col md:flex-row items-center justify-between gap-3 relative z-10">
+          {(mode === "premium" || mode === "festival") && activePromo && (
+            <div
+              id="tv-promo-board"
+              className="mb-4 bg-gradient-to-r from-black/80 via-[#15161A]/95 to-black/85 rounded border border-[#D4AF37]/35 p-3 flex flex-col md:flex-row items-center justify-between gap-3 relative z-10"
+            >
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-[#D4AF37]/10 border border-[#D4AF37]/30 rounded flex items-center justify-center">
                   <Gift className="w-5 h-5 text-[#F4D03F]" />
@@ -747,15 +999,16 @@ export default function TVDisplay({
                 </div>
               </div>
               <div className="text-[10px] text-[#D4AF37] font-poppins border border-[#D4AF37]/20 px-2.5 py-1 rounded bg-[#D4AF37]/5 flex items-center gap-1">
-                <Calendar className="w-3 h-3 text-[#D4AF37]" /> valid till {new Date(activePromo.endDate).toLocaleDateString()}
+                <Calendar className="w-3 h-3 text-[#D4AF37]" /> valid till{" "}
+                {new Date(activePromo.endDate).toLocaleDateString()}
               </div>
             </div>
           )}
         </>
       ) : (
         /* PREMIUM LUXURY MEDIA SIGNAGE SLIDESHOW PLAYGROUND (FULL COVERAGE) */
-        <div 
-          id="tv-media-slideshow" 
+        <div
+          id="tv-media-slideshow"
           className="absolute inset-0 w-full h-full bg-black z-50 flex flex-col overflow-hidden m-0 p-0 border-none transition-all duration-700"
         >
           {(() => {
@@ -763,8 +1016,10 @@ export default function TVDisplay({
             if (!currentItem) return null;
             return (
               <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-zinc-950">
-                {currentItem.type === 'video' || currentItem.url.match(/\.(mp4|webm|mov)$/i) || currentItem.url.startsWith('data:video') ? (
-                  <video 
+                {currentItem.type === "video" ||
+                currentItem.url.match(/\.(mp4|webm|mov)$/i) ||
+                currentItem.url.startsWith("data:video") ? (
+                  <video
                     key={currentItem.id}
                     src={currentItem.url}
                     className="w-full h-full object-cover bg-black"
@@ -774,7 +1029,7 @@ export default function TVDisplay({
                     playsInline
                   />
                 ) : (
-                  <img 
+                  <img
                     key={currentItem.id}
                     src={currentItem.url}
                     alt={currentItem.title}
@@ -782,7 +1037,7 @@ export default function TVDisplay({
                     className="w-full h-full object-cover transition-all"
                   />
                 )}
-                
+
                 {/* Floating soft shade gradient overlay mask */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/25 to-black/60 pointer-events-none" />
 
@@ -803,9 +1058,9 @@ export default function TVDisplay({
                       <div
                         key={indicator.id}
                         className={`transition-all rounded-full ${
-                          idx === activeMediaIndex 
-                            ? 'w-6 h-1.5 bg-[#D4AF37]' 
-                            : 'w-1.5 h-1.5 bg-zinc-650'
+                          idx === activeMediaIndex
+                            ? "w-6 h-1.5 bg-[#D4AF37]"
+                            : "w-1.5 h-1.5 bg-zinc-650"
                         }`}
                       />
                     ))}

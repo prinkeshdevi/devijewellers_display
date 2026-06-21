@@ -3,82 +3,89 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
-import { doc, setDoc, getDoc, onSnapshot } from 'firebase/firestore';
-import { db, auth } from './lib/firebase';
-import { io } from 'socket.io-client';
-import { 
-  JewelleryRates, 
-  RateTrends, 
-  Branch, 
-  DisplaySetting, 
-  MediaItem, 
-  PromoItem, 
-  SaleStatusItem, 
-  ConnectedDisplay, 
-  AuditLog, 
-  UserAccount, 
+import React, { useState, useEffect } from "react";
+import { doc, setDoc, getDoc, onSnapshot } from "firebase/firestore";
+import { db, auth } from "./lib/firebase";
+import { io } from "socket.io-client";
+import {
+  JewelleryRates,
+  RateTrends,
+  Branch,
+  DisplaySetting,
+  MediaItem,
+  PromoItem,
+  SaleStatusItem,
+  ConnectedDisplay,
+  AuditLog,
+  UserAccount,
   SystemConfig,
-  RateHistoryEntry
-} from './types';
-import { 
-  INITIAL_RATES, 
-  INITIAL_TRENDS, 
-  INITIAL_BRANCHES, 
-  INITIAL_DISPLAY_SETTING, 
-  INITIAL_MEDIA, 
-  INITIAL_PROMOS, 
-  INITIAL_SALE_STATUS, 
-  INITIAL_DISPLAYS, 
-  INITIAL_LOGS, 
-  INITIAL_USERS, 
+  RateHistoryEntry,
+} from "./types";
+import {
+  INITIAL_RATES,
+  INITIAL_TRENDS,
+  INITIAL_BRANCHES,
+  INITIAL_DISPLAY_SETTING,
+  INITIAL_MEDIA,
+  INITIAL_PROMOS,
+  INITIAL_SALE_STATUS,
+  INITIAL_DISPLAYS,
+  INITIAL_LOGS,
+  INITIAL_USERS,
   INITIAL_SYSTEM_CONFIG,
-  INITIAL_HISTORY
-} from './data/initialData';
+  INITIAL_HISTORY,
+} from "./data/initialData";
 
 // Component Imports
-import AdminDashboard from './components/AdminDashboard';
-import TVDisplay from './components/TVDisplay';
-import MobileControl from './components/MobileControl';
-import MediaManager from './components/MediaManager';
-import BackgroundManager from './components/BackgroundManager';
-import SaleStatus from './components/SaleStatus';
-import RateSync from './components/RateSync';
-import DisplayManager from './components/DisplayManager';
-import ReportsAnalytics from './components/ReportsAnalytics';
-import BranchManager from './components/BranchManager';
+import AdminDashboard from "./components/AdminDashboard";
+import TVDisplay from "./components/TVDisplay";
+import MobileControl from "./components/MobileControl";
+import MediaManager from "./components/MediaManager";
+import BackgroundManager from "./components/BackgroundManager";
+import SaleStatus from "./components/SaleStatus";
+import RateSync from "./components/RateSync";
+import DisplayManager from "./components/DisplayManager";
+import ReportsAnalytics from "./components/ReportsAnalytics";
+import BranchManager from "./components/BranchManager";
 
 // Icons
-import { 
-  Tv, 
-  Smartphone, 
-  LayoutDashboard, 
-  Video, 
+import {
+  Tv,
+  Smartphone,
+  LayoutDashboard,
+  Video,
   Image,
-  Gift, 
-  Activity, 
-  RefreshCw, 
-  BarChart4, 
-  Building2, 
-  Users, 
+  Gift,
+  Activity,
+  RefreshCw,
+  BarChart4,
+  Building2,
+  Users,
   Sparkles,
   BookOpen,
   Menu,
   X,
   Radio,
   FileCheck2,
-  LockKeyhole
-} from 'lucide-react';
+  LockKeyhole,
+} from "lucide-react";
 
 export default function App() {
-  const isStandaloneTvDisplay = window.location.pathname.toLowerCase().includes('/tvdisplay') || window.location.pathname.toLowerCase().includes('/tv-display') || window.location.search.toLowerCase().includes('tvdisplay');
-  const [activeTab, setActiveTab] = useState<string>(isStandaloneTvDisplay ? 'tv_display' : 'admin_dashboard');
+  const isStandaloneTvDisplay =
+    window.location.pathname.toLowerCase().includes("/tvdisplay") ||
+    window.location.pathname.toLowerCase().includes("/tv-display") ||
+    window.location.search.toLowerCase().includes("tvdisplay");
+  const [activeTab, setActiveTab] = useState<string>(
+    isStandaloneTvDisplay ? "tv_display" : "admin_dashboard",
+  );
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
-  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState<boolean>(!isStandaloneTvDisplay);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState<boolean>(
+    !isStandaloneTvDisplay,
+  );
 
   // Auto-hide desktop sidebar when entering TV Display mode
   useEffect(() => {
-    if (activeTab === 'tv_display' || isStandaloneTvDisplay) {
+    if (activeTab === "tv_display" || isStandaloneTvDisplay) {
       setDesktopSidebarOpen(false);
     } else {
       setDesktopSidebarOpen(true);
@@ -88,21 +95,31 @@ export default function App() {
   // Core persistent states
   const [rates, setRates] = useState<JewelleryRates>(INITIAL_RATES);
   const [trends, setTrends] = useState<RateTrends>(INITIAL_TRENDS);
-  const [displaySetting, setDisplaySetting] = useState<DisplaySetting>(INITIAL_DISPLAY_SETTING);
+  const [displaySetting, setDisplaySetting] = useState<DisplaySetting>(
+    INITIAL_DISPLAY_SETTING,
+  );
   const [branches, setBranches] = useState<Branch[]>(INITIAL_BRANCHES);
   const [media, setMedia] = useState<MediaItem[]>(INITIAL_MEDIA);
   const [promos, setPromos] = useState<PromoItem[]>(INITIAL_PROMOS);
-  const [saleStatuses, setSaleStatuses] = useState<SaleStatusItem[]>(INITIAL_SALE_STATUS);
-  const [displays, setDisplays] = useState<ConnectedDisplay[]>(INITIAL_DISPLAYS);
+  const [saleStatuses, setSaleStatuses] =
+    useState<SaleStatusItem[]>(INITIAL_SALE_STATUS);
+  const [displays, setDisplays] =
+    useState<ConnectedDisplay[]>(INITIAL_DISPLAYS);
   const [logs, setLogs] = useState<AuditLog[]>(INITIAL_LOGS);
   const [users, setUsers] = useState<UserAccount[]>(INITIAL_USERS);
-  const [systemConfig, setSystemConfig] = useState<SystemConfig>(INITIAL_SYSTEM_CONFIG);
+  const [systemConfig, setSystemConfig] = useState<SystemConfig>(
+    INITIAL_SYSTEM_CONFIG,
+  );
   const [history, setHistory] = useState<RateHistoryEntry[]>(INITIAL_HISTORY);
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
 
   // 1. Load initial states from backend SQL database, fallback to localStorage if they exist, or seed them
   useEffect(() => {
-    const loadStateFromApi = async (key: string, setter: (val: any) => void, backup: any) => {
+    const loadStateFromApi = async (
+      key: string,
+      setter: (val: any) => void,
+      backup: any,
+    ) => {
       try {
         const res = await fetch(`/api/state/${key}`);
         if (res.ok) {
@@ -110,13 +127,15 @@ export default function App() {
           if (contentType && contentType.indexOf("application/json") !== -1) {
             const json = await res.json();
             if (json.data) {
-              setter(json.data.payload !== undefined ? json.data.payload : json.data);
+              setter(
+                json.data.payload !== undefined ? json.data.payload : json.data,
+              );
               return;
             }
           }
         }
       } catch (err) {}
-      
+
       try {
         const item = localStorage.getItem(`asm_${key}`);
         if (item) setter(JSON.parse(item));
@@ -127,94 +146,116 @@ export default function App() {
     };
 
     const handleStorageEvent = (e: StorageEvent) => {
-       if (e.key && e.key.startsWith('asm_') && e.newValue) {
-         try {
-           const parsed = JSON.parse(e.newValue);
-           switch(e.key) {
-             case 'asm_rates': setRates(parsed); break;
-             case 'asm_displaySetting': setDisplaySetting(parsed); break;
-             case 'asm_systemConfig': setSystemConfig(parsed); break;
-             case 'asm_media': setMedia(parsed); break;
-             case 'asm_promos': setPromos(parsed); break;
-             case 'asm_branches': setBranches(parsed); break;
-             case 'asm_trends': setTrends(parsed); break;
-           }
-         } catch(err) {}
-       }
+      if (e.key && e.key.startsWith("asm_") && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          switch (e.key) {
+            case "asm_rates":
+              setRates(parsed);
+              break;
+            case "asm_displaySetting":
+              setDisplaySetting(parsed);
+              break;
+            case "asm_systemConfig":
+              setSystemConfig(parsed);
+              break;
+            case "asm_media":
+              setMedia(parsed);
+              break;
+            case "asm_promos":
+              setPromos(parsed);
+              break;
+            case "asm_branches":
+              setBranches(parsed);
+              break;
+            case "asm_trends":
+              setTrends(parsed);
+              break;
+          }
+        } catch (err) {}
+      }
     };
-    window.addEventListener('storage', handleStorageEvent);
+    window.addEventListener("storage", handleStorageEvent);
 
-    loadStateFromApi('rates', setRates, INITIAL_RATES);
-    loadStateFromApi('trends', setTrends, INITIAL_TRENDS);
-    loadStateFromApi('displaySetting', setDisplaySetting, INITIAL_DISPLAY_SETTING);
-    loadStateFromApi('branches', setBranches, INITIAL_BRANCHES);
-    loadStateFromApi('media', setMedia, INITIAL_MEDIA);
-    loadStateFromApi('promos', setPromos, INITIAL_PROMOS);
-    loadStateFromApi('saleStatuses', setSaleStatuses, INITIAL_SALE_STATUS);
-    loadStateFromApi('displays', setDisplays, INITIAL_DISPLAYS);
-    loadStateFromApi('logs', setLogs, INITIAL_LOGS);
-    loadStateFromApi('users', setUsers, INITIAL_USERS);
-    loadStateFromApi('systemConfig', setSystemConfig, {
+    loadStateFromApi("rates", setRates, INITIAL_RATES);
+    loadStateFromApi("trends", setTrends, INITIAL_TRENDS);
+    loadStateFromApi(
+      "displaySetting",
+      setDisplaySetting,
+      INITIAL_DISPLAY_SETTING,
+    );
+    loadStateFromApi("branches", setBranches, INITIAL_BRANCHES);
+    loadStateFromApi("media", setMedia, INITIAL_MEDIA);
+    loadStateFromApi("promos", setPromos, INITIAL_PROMOS);
+    loadStateFromApi("saleStatuses", setSaleStatuses, INITIAL_SALE_STATUS);
+    loadStateFromApi("displays", setDisplays, INITIAL_DISPLAYS);
+    loadStateFromApi("logs", setLogs, INITIAL_LOGS);
+    loadStateFromApi("users", setUsers, INITIAL_USERS);
+    loadStateFromApi("systemConfig", setSystemConfig, {
       ...INITIAL_SYSTEM_CONFIG,
-      companyName: 'Devi Jewellers',
-      logoText: 'DEVI JEWELLERS',
+      companyName: "Devi Jewellers",
+      logoText: "DEVI JEWELLERS",
     });
-    loadStateFromApi('history', setHistory, INITIAL_HISTORY);
-    const savedSync = localStorage.getItem('asm_lastSyncTime');
+    loadStateFromApi("history", setHistory, INITIAL_HISTORY);
+    const savedSync = localStorage.getItem("asm_lastSyncTime");
     if (savedSync) setLastSyncTime(JSON.parse(savedSync));
 
     // Fallback polling for states to ensure multi-tab/multi-device sync
     const statePoll = setInterval(() => {
-      loadStateFromApi('displaySetting', setDisplaySetting, INITIAL_DISPLAY_SETTING);
-      loadStateFromApi('systemConfig', setSystemConfig, INITIAL_SYSTEM_CONFIG);
-      loadStateFromApi('media', setMedia, INITIAL_MEDIA);
-      loadStateFromApi('promos', setPromos, INITIAL_PROMOS);
-      loadStateFromApi('branches', setBranches, INITIAL_BRANCHES);
+      loadStateFromApi(
+        "displaySetting",
+        setDisplaySetting,
+        INITIAL_DISPLAY_SETTING,
+      );
+      loadStateFromApi("systemConfig", setSystemConfig, INITIAL_SYSTEM_CONFIG);
+      loadStateFromApi("media", setMedia, INITIAL_MEDIA);
+      loadStateFromApi("promos", setPromos, INITIAL_PROMOS);
+      loadStateFromApi("branches", setBranches, INITIAL_BRANCHES);
     }, 15000);
 
     return () => {
       clearInterval(statePoll);
-      window.removeEventListener('storage', handleStorageEvent);
+      window.removeEventListener("storage", handleStorageEvent);
     };
   }, []);
 
   // Auto-sync rates periodically based on API
   useEffect(() => {
-    // We now just establish a websocket to the backend 
+    // We now just establish a websocket to the backend
     const socket = io();
 
-    socket.on('state_update', ({ module, data }) => {
+    socket.on("state_update", ({ module, data }) => {
       const payload = data.payload !== undefined ? data.payload : data;
       switch (module) {
-        case 'displaySetting':
+        case "displaySetting":
           setDisplaySetting(payload);
           break;
-        case 'branches':
+        case "branches":
           setBranches(payload);
           break;
-        case 'media':
+        case "media":
           setMedia(payload);
           break;
-        case 'promos':
+        case "promos":
           setPromos(payload);
           break;
-        case 'saleStatuses':
+        case "saleStatuses":
           setSaleStatuses(payload);
           break;
-        case 'systemConfig':
+        case "systemConfig":
           setSystemConfig(payload);
           break;
-        case 'displays':
+        case "displays":
           setDisplays(payload);
           break;
-        case 'history':
+        case "history":
           setHistory(payload);
           break;
       }
     });
 
-    socket.on('rate_update', (socketData) => {
-      if (socketData.type === 'sync_success' && socketData.data) {
+    socket.on("rate_update", (socketData) => {
+      if (socketData.type === "sync_success" && socketData.data) {
         const received = socketData.data;
         const newRates: JewelleryRates = {
           gold24k: received.gold24kSale,
@@ -231,13 +272,17 @@ export default function App() {
           platinumPurchase: received.platinumPurchase,
         };
 
-        const nowStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const nowStr = new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+        });
         setLastSyncTime(nowStr);
-        saveToStorage('lastSyncTime', nowStr);
+        saveToStorage("lastSyncTime", nowStr);
 
         setRates((prev: JewelleryRates) => {
           if (JSON.stringify(prev) !== JSON.stringify(newRates)) {
-            saveToStorage('rates', newRates);
+            saveToStorage("rates", newRates);
             return newRates;
           }
           return prev;
@@ -247,24 +292,26 @@ export default function App() {
 
     // Also fetch initial from backend
     fetch(`/api/rates/current?_t=${Date.now()}`)
-      .then(async res => {
+      .then(async (res) => {
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
         const contentType = res.headers.get("content-type");
         if (contentType && contentType.indexOf("application/json") !== -1) {
           return res.json();
         } else {
-          console.warn("Invalid content-type from /api/rates/current (proxy or server restarting)");
+          console.warn(
+            "Invalid content-type from /api/rates/current (proxy or server restarting)",
+          );
           return null;
         }
       })
-      .then(received => {
+      .then((received) => {
         if (received && received.gold24kSale) {
           const newRates: JewelleryRates = {
             gold24k: received.gold24kSale,
             gold24kPurchase: received.gold24kPurchase,
             gold22k: received.gold22kSale,
             gold22kPurchase: received.gold22kPurchase,
-            gold20k: received.gold22kSale - 200, 
+            gold20k: received.gold22kSale - 200,
             gold20kPurchase: received.gold22kPurchase - 200,
             gold18k: received.gold18kSale,
             gold18kPurchase: received.gold18kPurchase,
@@ -277,7 +324,8 @@ export default function App() {
         }
       })
       .catch((err) => {
-        if (err.message !== "Failed to fetch") console.error("Rate init error:", err);
+        if (err.message !== "Failed to fetch")
+          console.error("Rate init error:", err);
       });
 
     return () => {
@@ -289,24 +337,26 @@ export default function App() {
   useEffect(() => {
     const fetchCurrentRates = () => {
       fetch(`/api/rates/current?_t=${Date.now()}`)
-        .then(async res => {
+        .then(async (res) => {
           if (!res.ok) throw new Error(`HTTP error ${res.status}`);
           const contentType = res.headers.get("content-type");
           if (contentType && contentType.indexOf("application/json") !== -1) {
             return res.json();
           } else {
-            console.warn("Invalid content-type from /api/rates/current (proxy or server restarting)");
+            console.warn(
+              "Invalid content-type from /api/rates/current (proxy or server restarting)",
+            );
             return null;
           }
         })
-        .then(received => {
+        .then((received) => {
           if (received && received.gold24kSale) {
             const newRates: JewelleryRates = {
               gold24k: received.gold24kSale,
               gold24kPurchase: received.gold24kPurchase,
               gold22k: received.gold22kSale,
               gold22kPurchase: received.gold22kPurchase,
-              gold20k: received.gold22kSale - 200, 
+              gold20k: received.gold22kSale - 200,
               gold20kPurchase: received.gold22kPurchase - 200,
               gold18k: received.gold18kSale,
               gold18kPurchase: received.gold18kPurchase,
@@ -324,7 +374,8 @@ export default function App() {
           }
         })
         .catch((err) => {
-          if (err.message !== "Failed to fetch") console.error("Rate poll error:", err);
+          if (err.message !== "Failed to fetch")
+            console.error("Rate poll error:", err);
         });
     };
 
@@ -336,15 +387,18 @@ export default function App() {
 
   // Listen to Firestore for history
   useEffect(() => {
-    const unsubscribeHistory = onSnapshot(doc(db, "system", "history"), (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.entries && Array.isArray(data.entries)) {
-          setHistory(data.entries);
-          saveToStorage('history', data.entries);
+    const unsubscribeHistory = onSnapshot(
+      doc(db, "system", "history"),
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.entries && Array.isArray(data.entries)) {
+            setHistory(data.entries);
+            saveToStorage("history", data.entries);
+          }
         }
-      }
-    });
+      },
+    );
 
     return () => {
       unsubscribeHistory();
@@ -354,120 +408,127 @@ export default function App() {
   // Sync to database triggers (localstorage helper)
   const saveToStorage = (key: string, data: any) => {
     localStorage.setItem(`asm_${key}`, JSON.stringify(data));
-    
+
     // Also save to database endpoint
     fetch(`/api/state/${key}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ payload: data })
-    }).catch(err => console.error("API sync error:", err));
+      body: JSON.stringify({ payload: data }),
+    }).catch((err) => console.error("API sync error:", err));
   };
-
 
   // State update proxies to keep storage aligned
   const handleUpdateRates = (newRates: JewelleryRates) => {
     setRates(newRates);
-    saveToStorage('rates', newRates);
-    setDoc(doc(db, "system", "rates"), { 
-      ...newRates, 
-      updatedAt: new Date().toISOString() 
-    }, { merge: true }).catch(err => console.error("Firebase write error:", err));
+    saveToStorage("rates", newRates);
+    setDoc(
+      doc(db, "system", "rates"),
+      {
+        ...newRates,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    ).catch((err) => console.error("Firebase write error:", err));
   };
 
   const handleUpdateTrends = (newTrends: RateTrends) => {
     setTrends(newTrends);
-    saveToStorage('trends', newTrends);
+    saveToStorage("trends", newTrends);
   };
 
   const handleUpdateDisplaySetting = (newSetting: Partial<DisplaySetting>) => {
     const next = { ...displaySetting, ...newSetting };
     setDisplaySetting(next);
-    saveToStorage('displaySetting', next);
+    saveToStorage("displaySetting", next);
   };
 
   const handleUpdateBranches = (newBranches: Branch[]) => {
     setBranches(newBranches);
-    saveToStorage('branches', newBranches);
+    saveToStorage("branches", newBranches);
   };
 
   const handleUpdateMedia = (newMedia: MediaItem[]) => {
     setMedia(newMedia);
-    saveToStorage('media', newMedia);
+    saveToStorage("media", newMedia);
   };
 
   const handleUpdatePromos = (newPromos: PromoItem[]) => {
     setPromos(newPromos);
-    saveToStorage('promos', newPromos);
+    saveToStorage("promos", newPromos);
   };
 
   const handleUpdateSaleStatuses = (newStatuses: SaleStatusItem[]) => {
     setSaleStatuses(newStatuses);
-    saveToStorage('saleStatuses', newStatuses);
+    saveToStorage("saleStatuses", newStatuses);
   };
 
   const handleUpdateDisplays = (newDisplays: ConnectedDisplay[]) => {
     setDisplays(newDisplays);
-    saveToStorage('displays', newDisplays);
+    saveToStorage("displays", newDisplays);
   };
 
   const handleUpdateLogs = (newLogs: AuditLog[]) => {
     setLogs(newLogs);
-    saveToStorage('logs', newLogs);
+    saveToStorage("logs", newLogs);
   };
 
   const handleUpdateUsers = (newUsers: UserAccount[]) => {
     setUsers(newUsers);
-    saveToStorage('users', newUsers);
+    saveToStorage("users", newUsers);
   };
 
   const handleUpdateSystemConfig = (newConfig: SystemConfig) => {
     setSystemConfig(newConfig);
-    saveToStorage('systemConfig', newConfig);
+    saveToStorage("systemConfig", newConfig);
   };
 
   const handleUpdateHistory = (newHistory: RateHistoryEntry[]) => {
     setHistory(newHistory);
-    saveToStorage('history', newHistory);
-    setDoc(doc(db, "system", "history"), { 
-      entries: newHistory,
-      updatedAt: new Date().toISOString() 
-    }, { merge: true }).catch(err => console.error("Firebase write error:", err));
+    saveToStorage("history", newHistory);
+    setDoc(
+      doc(db, "system", "history"),
+      {
+        entries: newHistory,
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    ).catch((err) => console.error("Firebase write error:", err));
   };
 
   // Register dynamic log audits
   const triggerLogRecord = (action: string, details: string) => {
     const newLogEntry: AuditLog = {
-      id: 'log_' + Date.now(),
+      id: "log_" + Date.now(),
       timestamp: new Date().toISOString(),
-      userEmail: 'someshai1702@gmail.com', // Active session user from workspace metadata
+      userEmail: "someshai1702@gmail.com", // Active session user from workspace metadata
       action,
-      details
+      details,
     };
     const nextLogs = [newLogEntry, ...logs];
     setLogs(nextLogs);
-    saveToStorage('logs', nextLogs);
+    saveToStorage("logs", nextLogs);
   };
 
   // 2. Multi-Tab Real-time Auto-synchronization observer
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (!e.key || !e.newValue) return;
-      
+
       const parsedData = JSON.parse(e.newValue);
       switch (e.key) {
-        case 'asm_rates':
+        case "asm_rates":
           setRates(parsedData);
           break;
-        case 'asm_trends':
+        case "asm_trends":
           setTrends(parsedData);
           break;
-        case 'asm_displaySetting':
+        case "asm_displaySetting":
           setDisplaySetting(parsedData);
           break;
-        case 'asm_promos':
+        case "asm_promos":
           setPromos(parsedData);
           break;
-        case 'asm_systemConfig':
+        case "asm_systemConfig":
           setSystemConfig(parsedData);
           break;
         default:
@@ -475,30 +536,35 @@ export default function App() {
       }
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   // Determine active promotions
-  const activePromoObj = promos.find(p => p.id === displaySetting.campaignId);
+  const activePromoObj = promos.find((p) => p.id === displaySetting.campaignId);
 
   // Sidebar mapping
   const menuItems = [
-    { id: 'admin_dashboard', label: 'Admin Dashboard', icon: LayoutDashboard },
-    { id: 'tv_display', label: 'TV Display Screen', icon: Tv, accent: 'text-[#D4AF37]' },
-    { id: 'mobile_control', label: 'Mobile Controller', icon: Smartphone },
-    { id: 'rate_sync', label: 'Rate Sync Master', icon: RefreshCw },
-    { id: 'media_manager', label: 'Media Signage Desk', icon: Video },
-    { id: 'background_manager', label: 'Background Images', icon: Image },
-    { id: 'sale_status', label: 'Seasonal Status Tags', icon: Activity },
-    { id: 'branch_manager', label: 'Branch Management', icon: Building2 }
+    { id: "admin_dashboard", label: "Admin Dashboard", icon: LayoutDashboard },
+    {
+      id: "tv_display",
+      label: "TV Display Screen",
+      icon: Tv,
+      accent: "text-[#D4AF37]",
+    },
+    { id: "mobile_control", label: "Mobile Controller", icon: Smartphone },
+    { id: "rate_sync", label: "Rate Sync Master", icon: RefreshCw },
+    { id: "media_manager", label: "Media Signage Desk", icon: Video },
+    { id: "background_manager", label: "Background Images", icon: Image },
+    { id: "sale_status", label: "Seasonal Status Tags", icon: Activity },
+    { id: "branch_manager", label: "Branch Management", icon: Building2 },
   ];
 
   const renderActiveComponent = () => {
     switch (activeTab) {
-      case 'admin_dashboard':
+      case "admin_dashboard":
         return (
-          <AdminDashboard 
+          <AdminDashboard
             rates={rates}
             displays={displays}
             branches={branches}
@@ -512,10 +578,10 @@ export default function App() {
             onTriggerLog={triggerLogRecord}
           />
         );
-      case 'tv_display':
+      case "tv_display":
         return (
           <div className="w-full flex-1 flex flex-col bg-black overflow-hidden relative">
-            <TVDisplay 
+            <TVDisplay
               rates={rates}
               trends={trends}
               mode={displaySetting.mode}
@@ -536,8 +602,14 @@ export default function App() {
               goldFontSize={displaySetting.goldFontSize}
               silverFontSize={displaySetting.silverFontSize}
               labelFontSize={displaySetting.labelFontSize}
-              saleTitleFontSize={displaySetting.saleTitleFontSize || displaySetting.subLabelFontSize}
-              purchaseTitleFontSize={displaySetting.purchaseTitleFontSize || displaySetting.subLabelFontSize}
+              saleTitleFontSize={
+                displaySetting.saleTitleFontSize ||
+                displaySetting.subLabelFontSize
+              }
+              purchaseTitleFontSize={
+                displaySetting.purchaseTitleFontSize ||
+                displaySetting.subLabelFontSize
+              }
               visibleRates={displaySetting.visibleRates}
               media={media}
               mediaLoopEnabled={displaySetting.mediaLoopEnabled !== false}
@@ -548,9 +620,9 @@ export default function App() {
             />
           </div>
         );
-      case 'mobile_control':
+      case "mobile_control":
         return (
-          <MobileControl 
+          <MobileControl
             rates={rates}
             trends={trends}
             onUpdateRates={handleUpdateRates}
@@ -562,9 +634,9 @@ export default function App() {
             onTriggerLog={triggerLogRecord}
           />
         );
-      case 'media_manager':
+      case "media_manager":
         return (
-          <MediaManager 
+          <MediaManager
             media={media}
             onUpdateMedia={handleUpdateMedia}
             onTriggerLog={triggerLogRecord}
@@ -572,9 +644,9 @@ export default function App() {
             onUpdateDisplaySetting={handleUpdateDisplaySetting}
           />
         );
-      case 'background_manager':
+      case "background_manager":
         return (
-          <BackgroundManager 
+          <BackgroundManager
             media={media}
             onUpdateMedia={handleUpdateMedia}
             onTriggerLog={triggerLogRecord}
@@ -582,9 +654,9 @@ export default function App() {
             onUpdateDisplaySetting={handleUpdateDisplaySetting}
           />
         );
-      case 'sale_status':
+      case "sale_status":
         return (
-          <SaleStatus 
+          <SaleStatus
             rates={rates}
             saleStatuses={saleStatuses}
             branches={branches}
@@ -593,9 +665,9 @@ export default function App() {
             onTriggerLog={triggerLogRecord}
           />
         );
-      case 'rate_sync':
+      case "rate_sync":
         return (
-          <RateSync 
+          <RateSync
             rates={rates}
             trends={trends}
             history={history}
@@ -608,25 +680,20 @@ export default function App() {
             onTriggerLog={triggerLogRecord}
           />
         );
-      case 'display_manager':
+      case "display_manager":
         return (
-          <DisplayManager 
+          <DisplayManager
             displays={displays}
             branches={branches}
             onUpdateDisplays={handleUpdateDisplays}
             onTriggerLog={triggerLogRecord}
           />
         );
-      case 'reports_analytics':
+      case "reports_analytics":
+        return <ReportsAnalytics history={history} rates={rates} />;
+      case "branch_manager":
         return (
-          <ReportsAnalytics 
-            history={history}
-            rates={rates}
-          />
-        );
-      case 'branch_manager':
-        return (
-          <BranchManager 
+          <BranchManager
             branches={branches}
             onUpdateBranches={handleUpdateBranches}
             onTriggerLog={triggerLogRecord}
@@ -640,7 +707,7 @@ export default function App() {
   if (isStandaloneTvDisplay) {
     return (
       <div className="w-full h-[100dvh] bg-black overflow-hidden relative font-sans antialiased flex flex-col">
-        <TVDisplay 
+        <TVDisplay
           rates={rates}
           trends={trends}
           mode={displaySetting.mode}
@@ -661,14 +728,20 @@ export default function App() {
           goldFontSize={displaySetting.goldFontSize}
           silverFontSize={displaySetting.silverFontSize}
           labelFontSize={displaySetting.labelFontSize}
-          saleTitleFontSize={displaySetting.saleTitleFontSize || displaySetting.subLabelFontSize}
-          purchaseTitleFontSize={displaySetting.purchaseTitleFontSize || displaySetting.subLabelFontSize}
+          saleTitleFontSize={
+            displaySetting.saleTitleFontSize || displaySetting.subLabelFontSize
+          }
+          purchaseTitleFontSize={
+            displaySetting.purchaseTitleFontSize ||
+            displaySetting.subLabelFontSize
+          }
           visibleRates={displaySetting.visibleRates}
           media={media}
           mediaLoopEnabled={displaySetting.mediaLoopEnabled !== false}
           rotateBackgroundEnabled={displaySetting.rotateBackgroundEnabled}
           ratesDisplayDuration={displaySetting.ratesDisplayDuration}
           slideshowDisplayDuration={displaySetting.slideshowDisplayDuration}
+          lastSyncTime={lastSyncTime}
           showDate={displaySetting.showDate !== false}
         />
       </div>
@@ -676,13 +749,14 @@ export default function App() {
   }
 
   return (
-    <div id="app-workspace-container" className="h-[100dvh] w-full overflow-hidden bg-[#0B0B0D] text-[#F8F5EE] flex font-sans select-none antialiased">
-      
+    <div
+      id="app-workspace-container"
+      className="h-[100dvh] w-full overflow-hidden bg-[#0B0B0D] text-[#F8F5EE] flex font-sans select-none antialiased"
+    >
       {/* SIDEBAR NAVIGATION WORKSPACE */}
       {/* Desktop Sidebar */}
       {desktopSidebarOpen && (
         <aside className="hidden lg:flex flex-col w-64 bg-[#111216] border-r border-[#D4AF37]/15 leading-relaxed p-4 h-screen sticky top-0 justify-between select-none shrink-0 transition-transform">
-          
           <div>
             {/* Branded Logo Column */}
             <div className="flex items-center gap-3 px-2 py-4 border-b border-zinc-800/80 mb-5 select-none">
@@ -690,10 +764,15 @@ export default function App() {
                 <Sparkles className="w-5 h-5 text-[#D4AF37] animate-pulse" />
               </div>
               <div>
-                <h1 className="text-sm font-black font-serif tracking-[0.15em] gold-gradient uppercase" id="app-brand-title">
-                  {systemConfig.logoText || 'DEVIJEWELLERS'}
+                <h1
+                  className="text-sm font-black font-serif tracking-[0.15em] text-white uppercase"
+                  id="app-brand-title"
+                >
+                  {systemConfig.logoText || "DEVIJEWELLERS"}
                 </h1>
-                <p className="text-[9px] text-[#D4AF37]/70 font-mono uppercase tracking-[0.2em] leading-none mt-0.5 font-bold">PRESTIGE ATELIER</p>
+                <p className="text-[9px] text-white/70 font-mono uppercase tracking-[0.2em] leading-none mt-0.5 font-bold">
+                  PRESTIGE ATELIER
+                </p>
               </div>
             </div>
 
@@ -701,20 +780,24 @@ export default function App() {
               {menuItems.map((item) => {
                 const IconComp = item.icon;
                 const isActive = activeTab === item.id;
-                
+
                 return (
                   <button
                     key={item.id}
                     onClick={() => setActiveTab(item.id)}
                     id={`sidebar-item-${item.id}`}
                     className={`flex items-center gap-3 px-3 py-2 rounded text-xs transition-all tracking-wider text-left ${
-                      isActive 
-                        ? 'bg-[#D4AF37]/15 text-[#D4AF37] font-semibold border-l-2 border-[#D4AF37]' 
-                        : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'
+                      isActive
+                        ? "bg-[#D4AF37]/15 text-[#D4AF37] font-semibold border-l-2 border-[#D4AF37]"
+                        : "text-zinc-400 hover:text-white hover:bg-zinc-800/40"
                     }`}
                   >
-                    <IconComp className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#D4AF37]' : 'text-zinc-500'}`} />
-                    <span className="font-serif uppercase tracking-wide">{item.label}</span>
+                    <IconComp
+                      className={`w-4 h-4 shrink-0 ${isActive ? "text-[#D4AF37]" : "text-zinc-500"}`}
+                    />
+                    <span className="font-serif uppercase tracking-wide">
+                      {item.label}
+                    </span>
                   </button>
                 );
               })}
@@ -725,11 +808,14 @@ export default function App() {
           <div className="border-t border-zinc-850 pt-3 flex flex-col gap-1 pl-2 select-none">
             <div className="flex items-center gap-2">
               <LockKeyhole className="w-3.5 h-3.5 text-[#D4AF37]" />
-              <span className="text-[10px] font-mono font-bold text-zinc-300">someshai1702@gmail.com</span>
+              <span className="text-[10px] font-mono font-bold text-zinc-300">
+                someshai1702@gmail.com
+              </span>
             </div>
-            <p className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest">Atelier Master Key • v4.5</p>
+            <p className="text-[8px] font-mono text-zinc-500 uppercase tracking-widest">
+              Atelier Master Key • v4.5
+            </p>
           </div>
-
         </aside>
       )}
 
@@ -739,8 +825,13 @@ export default function App() {
           <div className="w-64 bg-[#111216] border-r border-[#D4AF37]/30 p-4 shrink-0 flex flex-col justify-between">
             <div>
               <div className="flex justify-between items-center bg-black/40 p-2 rounded mb-4">
-                <span className="text-xs font-bold font-serif text-[#D4AF37]">Signage Menu</span>
-                <button onClick={() => setSidebarOpen(false)} className="text-zinc-400">
+                <span className="text-xs font-bold font-serif text-[#D4AF37]">
+                  Signage Menu
+                </span>
+                <button
+                  onClick={() => setSidebarOpen(false)}
+                  className="text-zinc-400"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -749,19 +840,24 @@ export default function App() {
                 {menuItems.map((item) => {
                   const IconComp = item.icon;
                   const isActive = activeTab === item.id;
-                  
+
                   return (
                     <button
                       key={item.id}
-                      onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        setSidebarOpen(false);
+                      }}
                       className={`flex items-center gap-3 px-3 py-2 rounded text-xs transition-all tracking-wider text-left ${
-                        isActive 
-                          ? 'bg-[#D4AF37]/15 text-[#D4AF37] font-semibold' 
-                          : 'text-zinc-400 hover:text-white'
+                        isActive
+                          ? "bg-[#D4AF37]/15 text-[#D4AF37] font-semibold"
+                          : "text-zinc-400 hover:text-white"
                       }`}
                     >
                       <IconComp className="w-4 h-4" />
-                      <span className="font-serif uppercase tracking-wide">{item.label}</span>
+                      <span className="font-serif uppercase tracking-wide">
+                        {item.label}
+                      </span>
                     </button>
                   );
                 })}
@@ -778,10 +874,9 @@ export default function App() {
 
       {/* CORE FRAME CONTAINER */}
       <div className="flex-1 flex flex-col relative w-full h-screen overflow-hidden">
-        
         {/* Floating Hamburger icon for Desktop TV Display mode */}
         {!desktopSidebarOpen && !isStandaloneTvDisplay && (
-          <button 
+          <button
             onClick={() => setSidebarOpen(true)}
             className="hidden lg:flex fixed top-4 left-4 z-[9999] p-3 bg-black/80 backdrop-blur border border-[#D4AF37] rounded-lg text-[#D4AF37] shadow-xl hover:bg-zinc-800 transition-all opacity-60 hover:opacity-100"
             title="Open Menu"
@@ -791,33 +886,38 @@ export default function App() {
         )}
 
         {/* MOBILE CONTROL TOP BAR (Hide in TV mode) */}
-        {activeTab !== 'tv_display' && (
+        {activeTab !== "tv_display" && (
           <header className="flex lg:hidden justify-between items-center bg-[#111216] border-b border-zinc-850 px-4 py-3 sticky top-0 z-40 select-none">
             <div className="flex items-center gap-2">
-              <button onClick={() => setSidebarOpen(true)} className="p-1.5 text-zinc-400 hover:text-white">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="p-1.5 text-zinc-400 hover:text-white"
+              >
                 <Menu className="w-5 h-5" />
               </button>
-              <h1 className="text-xs font-bold font-serif tracking-[0.2em] text-[#D4AF37]">
-                {systemConfig.logoText || 'DEVIJEWELLERS'}
+              <h1 className="text-xs font-bold font-serif tracking-[0.2em] text-white">
+                {systemConfig.logoText || "DEVIJEWELLERS"}
               </h1>
             </div>
 
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span className="text-[9px] font-mono text-zinc-400">ACTIVE SYNC</span>
+              <span className="text-[9px] font-mono text-zinc-400">
+                ACTIVE SYNC
+              </span>
             </div>
           </header>
         )}
 
         {/* WORK SURFACE SCROLLER */}
-        <main className={`flex-1 flex flex-col min-h-0 ${activeTab === 'tv_display' ? 'overflow-hidden pb-0 bg-black' : 'overflow-y-auto pb-16'}`}>
+        <main
+          className={`flex-1 flex flex-col min-h-0 ${activeTab === "tv_display" ? "overflow-hidden pb-0 bg-black" : "overflow-y-auto pb-16"}`}
+        >
           <div className="w-full mx-auto animate-fade-in flex-1 relative flex flex-col">
             {renderActiveComponent()}
           </div>
         </main>
-
       </div>
-
     </div>
   );
 }
